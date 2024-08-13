@@ -1,0 +1,145 @@
+mu_param:
+Estimated Mutual Information (Histogram1): 0.03654059424159562
+Estimated Mutual Information (Histogram2): 0.03654059424159562
+Estimated Mutual Information (Histogram3): 0.03654059424159562
+Estimated Mutual Information (KDE): 0.0
+mu_param_eff1:
+Estimated Mutual Information (Histogram1): 1.497736614100009e-08
+Estimated Mutual Information (Histogram2): 1.497736614100009e-08
+Estimated Mutual Information (Histogram3): 1.497736614100009e-08
+Estimated Mutual Information (KDE): 0.0
+mu_param_eff10:
+Estimated Mutual Information (Histogram1): 1.497736614100009e-08
+Estimated Mutual Information (Histogram2): 1.497736614100009e-08
+Estimated Mutual Information (Histogram3): 1.497736614100009e-08
+Estimated Mutual Information (KDE): 0.0
+mu_param_eff100:
+Estimated Mutual Information (Histogram1): 1.497736614100009e-08
+Estimated Mutual Information (Histogram2): 1.497736614100009e-08
+Estimated Mutual Information (Histogram3): 1.497736614100009e-08
+Estimated Mutual Information (KDE): 0.0
+mu_marg_mean:
+Estimated Mutual Information (Histogram1): 0.17131545026721068
+Estimated Mutual Information (Histogram2): 0.17131545026721068
+Estimated Mutual Information (Histogram3): 0.17131545026721068
+Estimated Mutual Information (KDE): 0.0
+mu_marg_10:
+Estimated Mutual Information (Histogram1): 0.05012686977321991
+Estimated Mutual Information (Histogram2): 0.05012686977321991
+Estimated Mutual Information (Histogram3): 0.05012686977321991
+Estimated Mutual Information (KDE): 0.0
+mu_marg_Q1:
+Estimated Mutual Information (Histogram1): 0.11435161387172561
+Estimated Mutual Information (Histogram2): 0.11435161387172561
+Estimated Mutual Information (Histogram3): 0.11435161387172561
+Estimated Mutual Information (KDE): 0.0
+mu_marg_Q2:
+Estimated Mutual Information (Histogram1): 0.1497690896883969
+Estimated Mutual Information (Histogram2): 0.1497690896883969
+Estimated Mutual Information (Histogram3): 0.1497690896883969
+Estimated Mutual Information (KDE): nan
+mu_marg_Q3:
+Estimated Mutual Information (Histogram1): 0.1399414644277966
+Estimated Mutual Information (Histogram2): 0.1399414644277966
+Estimated Mutual Information (Histogram3): 0.1399414644277966
+Estimated Mutual Information (KDE): nan
+mu_marg_mean * mu_param:
+Estimated Mutual Information (Histogram1): 0.03757593740662313
+Estimated Mutual Information (Histogram2): 0.03757593740662313
+Estimated Mutual Information (Histogram3): 0.03757593740662313
+Estimated Mutual Information (KDE): nan
+mu_marg_mean * mu_param_eff1:
+Estimated Mutual Information (Histogram1): 1.497736614100009e-08
+Estimated Mutual Information (Histogram2): 1.497736614100009e-08
+Estimated Mutual Information (Histogram3): 1.497736614100009e-08
+Estimated Mutual Information (KDE): 0.0
+mu_marg_mean * mu_param_eff10:
+Estimated Mutual Information (Histogram1): 1.497736614100009e-08
+Estimated Mutual Information (Histogram2): 1.497736614100009e-08
+Estimated Mutual Information (Histogram3): 1.497736614100009e-08
+Estimated Mutual Information (KDE): 0.0
+mu_marg_mean * mu_param_eff100:
+Estimated Mutual Information (Histogram1): 1.497736614100009e-08
+Estimated Mutual Information (Histogram2): 1.497736614100009e-08
+Estimated Mutual Information (Histogram3): 1.497736614100009e-08
+Estimated Mutual Information (KDE): 0.0
+mu_marg_10 * mu_param:
+Estimated Mutual Information (Histogram1): 0.0204520679987729
+Estimated Mutual Information (Histogram2): 0.0204520679987729
+Estimated Mutual Information (Histogram3): 0.0204520679987729
+Estimated Mutual Information (KDE): -0.08187971622658588
+mu_marg_10 * mu_param_eff1:
+Estimated Mutual Information (Histogram1): 1.497736614100009e-08
+Estimated Mutual Information (Histogram2): 1.497736614100009e-08
+Estimated Mutual Information (Histogram3): 1.497736614100009e-08
+Estimated Mutual Information (KDE): 0.0
+mu_marg_10 * mu_param_eff10:
+Estimated Mutual Information (Histogram1): 1.497736614100009e-08
+Estimated Mutual Information (Histogram2): 1.497736614100009e-08
+Estimated Mutual Information (Histogram3): 1.497736614100009e-08
+Estimated Mutual Information (KDE): 0.0
+mu_marg_10 * mu_param_eff100:
+Estimated Mutual Information (Histogram1): 1.497736614100009e-08
+Estimated Mutual Information (Histogram2): 1.497736614100009e-08
+Estimated Mutual Information (Histogram3): 1.497736614100009e-08
+Estimated Mutual Information (KDE): 0.0
+mu_marg_Q1 * mu_param:
+Estimated Mutual Information (Histogram1): 0.03442530497325529
+Estimated Mutual Information (Histogram2): 0.03442530497325529
+Estimated Mutual Information (Histogram3): 0.03442530497325529
+Estimated Mutual Information (KDE): -0.03906780922150081
+mu_marg_Q1 * mu_param_eff1:
+Estimated Mutual Information (Histogram1): 1.497736614100009e-08
+Estimated Mutual Information (Histogram2): 1.497736614100009e-08
+Estimated Mutual Information (Histogram3): 1.497736614100009e-08
+Estimated Mutual Information (KDE): 0.0
+mu_marg_Q1 * mu_param_eff10:
+Estimated Mutual Information (Histogram1): 1.497736614100009e-08
+Estimated Mutual Information (Histogram2): 1.497736614100009e-08
+Estimated Mutual Information (Histogram3): 1.497736614100009e-08
+Estimated Mutual Information (KDE): 0.0
+mu_marg_Q1 * mu_param_eff100:
+Estimated Mutual Information (Histogram1): 1.497736614100009e-08
+Estimated Mutual Information (Histogram2): 1.497736614100009e-08
+Estimated Mutual Information (Histogram3): 1.497736614100009e-08
+Estimated Mutual Information (KDE): 0.0
+mu_marg_Q2 * mu_param:
+Estimated Mutual Information (Histogram1): 0.035349049052078925
+Estimated Mutual Information (Histogram2): 0.035349049052078925
+Estimated Mutual Information (Histogram3): 0.035349049052078925
+Estimated Mutual Information (KDE): nan
+mu_marg_Q2 * mu_param_eff1:
+Estimated Mutual Information (Histogram1): 1.497736614100009e-08
+Estimated Mutual Information (Histogram2): 1.497736614100009e-08
+Estimated Mutual Information (Histogram3): 1.497736614100009e-08
+Estimated Mutual Information (KDE): 0.0
+mu_marg_Q2 * mu_param_eff10:
+Estimated Mutual Information (Histogram1): 1.497736614100009e-08
+Estimated Mutual Information (Histogram2): 1.497736614100009e-08
+Estimated Mutual Information (Histogram3): 1.497736614100009e-08
+Estimated Mutual Information (KDE): 0.0
+mu_marg_Q2 * mu_param_eff100:
+Estimated Mutual Information (Histogram1): 1.497736614100009e-08
+Estimated Mutual Information (Histogram2): 1.497736614100009e-08
+Estimated Mutual Information (Histogram3): 1.497736614100009e-08
+Estimated Mutual Information (KDE): 0.0
+mu_marg_Q3 * mu_param:
+Estimated Mutual Information (Histogram1): 0.038877102314695496
+Estimated Mutual Information (Histogram2): 0.038877102314695496
+Estimated Mutual Information (Histogram3): 0.038877102314695496
+Estimated Mutual Information (KDE): 3.676120610757559e-14
+mu_marg_Q3 * mu_param_eff1:
+Estimated Mutual Information (Histogram1): 1.497736614100009e-08
+Estimated Mutual Information (Histogram2): 1.497736614100009e-08
+Estimated Mutual Information (Histogram3): 1.497736614100009e-08
+Estimated Mutual Information (KDE): 0.0
+mu_marg_Q3 * mu_param_eff10:
+Estimated Mutual Information (Histogram1): 1.497736614100009e-08
+Estimated Mutual Information (Histogram2): 1.497736614100009e-08
+Estimated Mutual Information (Histogram3): 1.497736614100009e-08
+Estimated Mutual Information (KDE): 0.0
+mu_marg_Q3 * mu_param_eff100:
+Estimated Mutual Information (Histogram1): 1.497736614100009e-08
+Estimated Mutual Information (Histogram2): 1.497736614100009e-08
+Estimated Mutual Information (Histogram3): 1.497736614100009e-08
+Estimated Mutual Information (KDE): 0.0
