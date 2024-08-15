@@ -19,7 +19,7 @@ def train(self, X, y, convergence_interval=10):
         X_batch = torch.tensor(X[batch_index], dtype=torch.float32)
         y_batch = torch.tensor(y[batch_index], dtype=torch.long)
 
-        if self.batch_size == self.num_samples:
+        if self.batch_size is "Full Batch":
             X_batch = torch.tensor(X, dtype=torch.float32)
             y_batch = torch.tensor(y, dtype=torch.long)
         
