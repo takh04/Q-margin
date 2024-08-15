@@ -105,6 +105,11 @@ class QPRVariationalClassifier(BaseEstimator, ClassifierMixin):
             y,
             self.convergence_interval,
         )
+        if self.convergence_interval == "overfit":
+            print("Loading best model...")
+            self.model.load_state_dict(self.best_model_state)
+            parameters_list = [param.detach().numpy() for param in self.model.parameters()]
+            self.weight_final = np.concatenate(parameters_list)
     
     def predict(self, X):
         probabilities = self.model(torch.from_numpy(X).to(torch.float32))

@@ -3,6 +3,7 @@ import time
 import numpy as np
 import torch
 import pennylane as qml
+import copy
 
 # Model Training Utility
 def train(self, X, y, convergence_interval=10):
@@ -12,19 +13,24 @@ def train(self, X, y, convergence_interval=10):
     loss_history = []
     start = time.time()
     best_train_accuracy = 0.0
-    best_model_state = None
+    if self.batch_size == "Full Batch":
+        X_batch = torch.tensor(X, dtype=torch.float32)
+        y_batch = torch.tensor(y, dtype=torch.long)
+    
     for step in range(self.max_steps):
-        
-        if self.batch_size == "Full Batch":
-            X_batch = torch.tensor(X, dtype=torch.float32)
-            y_batch = torch.tensor(y, dtype=torch.long)
-        else:
+        if self.batch_size != "Full Batch":
             batch_index = np.random.randint(0, len(X), (self.batch_size,))
             X_batch = torch.tensor(X[batch_index], dtype=torch.float32)
             y_batch = torch.tensor(y[batch_index], dtype=torch.long)
         
         pred = self.model(X_batch)
         loss = loss_fn(pred, y_batch)
+        
+        pred_labels = torch.argmax(pred, dim=1)
+        train_accuracy = (pred_labels == y_batch).float().mean().item()
+        if train_accuracy >= best_train_accuracy:
+            best_train_accuracy = train_accuracy
+            self.best_model_state = copy.deepcopy(self.model.state_dict())
 
         opt.zero_grad()
         loss.backward()
@@ -36,21 +42,10 @@ def train(self, X, y, convergence_interval=10):
         if np.isnan(loss.item()):
             logging.info(f"nan encountered. Training aborted.")
             break
-
-        if convergence_interval == "overfit":
-            with torch.no_grad():
-                train_pred = self.model(torch.tensor(X_batch, dtype=torch.float32))
-                train_pred_labels = torch.argmax(train_pred, dim=1)
-                train_accuracy = (train_pred_labels == torch.tensor(y_batch)).float().mean().item()
-                if train_accuracy >= best_train_accuracy:
-                    best_train_accuracy = train_accuracy
-                    best_model_state = self.model.state_dict()
-            
-            if step % 1000 == 0:
-                print(f"Step {step}, Loss {loss.item()}, Train Accuracy {train_accuracy}, Best Train Accuracy {best_train_accuracy}")
-        else:
-            if step % 1000 == 0 :
-                print(f"Step {step}, Loss {loss.item()}")
+        if step % 1000 == 0:
+            print(f"Step {step}, Loss {loss.item()}, Train Accuracy {train_accuracy}, Best Train Accuracy {best_train_accuracy}")
+        
+        if convergence_interval != "overfit":
             if step > 2 * convergence_interval:
                 average1 = np.mean(loss_history[-convergence_interval:])
                 average2 = np.mean(loss_history[-2 * convergence_interval:-convergence_interval])
@@ -64,10 +59,6 @@ def train(self, X, y, convergence_interval=10):
     print(f"Training took {end - start} seconds.")
     loss_history = np.array(loss_history)
     np.save(self.PATH1 + self.PATH2 + "loss_history.npy", loss_history)
-    if self.convergence_interval == "overfit":
-        self.model.load_state_dict(best_model_state)
-    parameters_list = [param.detach().numpy() for param in self.model.parameters()]
-    self.weight_final = np.concatenate(parameters_list)
    
 
 #====================================================================================================
