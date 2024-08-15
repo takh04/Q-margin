@@ -19,7 +19,7 @@ def train(self, X, y, convergence_interval=10):
         X_batch = torch.tensor(X[batch_index], dtype=torch.float32)
         y_batch = torch.tensor(y[batch_index], dtype=torch.long)
 
-        if self.batch_size is "Full Batch":
+        if self.batch_size == "Full Batch":
             X_batch = torch.tensor(X, dtype=torch.float32)
             y_batch = torch.tensor(y, dtype=torch.long)
         
@@ -37,7 +37,7 @@ def train(self, X, y, convergence_interval=10):
             logging.info(f"nan encountered. Training aborted.")
             break
 
-        if convergence_interval is "overfit":
+        if convergence_interval == "overfit":
             with torch.no_grad():
                 train_pred = self.model(torch.tensor(X_batch, dtype=torch.float32))
                 train_pred_labels = torch.argmax(train_pred, dim=1)
