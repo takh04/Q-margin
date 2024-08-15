@@ -1,3 +1,0 @@
-Train Accuracy: 0.44999998807907104
-Test Accuracy: 0.36899998784065247
-Generalization Gap: 0.08100000023841858
