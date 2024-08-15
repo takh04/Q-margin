@@ -38,7 +38,7 @@ def train(self, X, y, convergence_interval=10):
                 train_pred = self.model(torch.tensor(X_batch, dtype=torch.float32))
                 train_pred_labels = torch.argmax(train_pred, dim=1)
                 train_accuracy = (train_pred_labels == torch.tensor(y_batch)).float().mean().item()
-                if train_accuracy > best_train_accuracy:
+                if train_accuracy >= best_train_accuracy:
                     best_train_accuracy = train_accuracy
                     best_model_state = self.model.state_dict()
             
