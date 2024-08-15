@@ -18,6 +18,10 @@ def train(self, X, y, convergence_interval=10):
         batch_index = np.random.randint(0, len(X), (self.batch_size,))
         X_batch = torch.tensor(X[batch_index], dtype=torch.float32)
         y_batch = torch.tensor(y[batch_index], dtype=torch.long)
+
+        if self.batch_size == self.num_samples:
+            X_batch = torch.tensor(X, dtype=torch.float32)
+            y_batch = torch.tensor(y, dtype=torch.long)
         
         pred = self.model(X_batch)
         loss = loss_fn(pred, y_batch)

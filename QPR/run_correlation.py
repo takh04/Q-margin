@@ -116,7 +116,7 @@ def run_all(r, n_qubits_list, var_ansatz_list, num_layers_list, exp_list):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--r_list", nargs="+", type=float, default=[0.0, 0.5, 1.0])      
+    parser.add_argument("--r", type=float, default=0.0)      
     parser.add_argument("--n_qubits_list", nargs="+", type=int, default=[4, 8]) 
     parser.add_argument("--var_ansatz_list", nargs="+", type=str, default=["QCNN_not_shared", "QCNN_shared", "SEL"])
     parser.add_argument("--num_layers_list", nargs="+", type=int, default=[1,2,3,4,5,6,7,8,9,10]) 
