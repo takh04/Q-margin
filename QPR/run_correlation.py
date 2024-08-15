@@ -6,7 +6,7 @@ import argparse
 
 #Constants
 num_classes = 4
-max_steps = 2000
+max_steps = 5000
 learning_rate = 1e-3
 convergence_interval = "overfit"
 num_samples = 20
@@ -119,7 +119,7 @@ if __name__ == "__main__":
     parser.add_argument("--r", type=float, default=0.0)      
     parser.add_argument("--n_qubits_list", nargs="+", type=int, default=[4, 8]) 
     parser.add_argument("--var_ansatz_list", nargs="+", type=str, default=["QCNN_not_shared", "QCNN_shared", "SEL"])
-    parser.add_argument("--num_layers_list", nargs="+", type=int, default=[1,2,3,4,5,6,7,8,9,10]) 
+    parser.add_argument("--num_layers_list", nargs="+", type=int, default=[1,3,5,7,9]) 
     parser.add_argument("--exp_list", nargs="+", type=int, default=[1])         
     args, _ = parser.parse_known_args()
     run_all(**vars(args))
