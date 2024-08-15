@@ -14,14 +14,14 @@ def train(self, X, y, convergence_interval=10):
     best_train_accuracy = 0.0
     best_model_state = None
     for step in range(self.max_steps):
-          
-        batch_index = np.random.randint(0, len(X), (self.batch_size,))
-        X_batch = torch.tensor(X[batch_index], dtype=torch.float32)
-        y_batch = torch.tensor(y[batch_index], dtype=torch.long)
-
+        
         if self.batch_size == "Full Batch":
             X_batch = torch.tensor(X, dtype=torch.float32)
             y_batch = torch.tensor(y, dtype=torch.long)
+        else:
+            batch_index = np.random.randint(0, len(X), (self.batch_size,))
+            X_batch = torch.tensor(X[batch_index], dtype=torch.float32)
+            y_batch = torch.tensor(y[batch_index], dtype=torch.long)
         
         pred = self.model(X_batch)
         loss = loss_fn(pred, y_batch)
