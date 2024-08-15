@@ -10,7 +10,7 @@ max_steps = 2000
 learning_rate = 1e-3
 convergence_interval = "overfit"
 num_samples = 20
-batch_size = 20
+batch_size = "Full Batch"
 
 def mutual_information_hist(a, b):
     num_bins = int(np.round(np.sqrt(len(a))))
