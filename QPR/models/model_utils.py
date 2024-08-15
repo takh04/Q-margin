@@ -46,10 +46,10 @@ def train(self, X, y, convergence_interval=10):
                     best_train_accuracy = train_accuracy
                     best_model_state = self.model.state_dict()
             
-            if step % 100 == 0:
+            if step % 1000 == 0:
                 print(f"Step {step}, Loss {loss.item()}, Train Accuracy {train_accuracy}, Best Train Accuracy {best_train_accuracy}")
         else:
-            if step % 100 == 0 :
+            if step % 1000 == 0 :
                 print(f"Step {step}, Loss {loss.item()}")
             if step > 2 * convergence_interval:
                 average1 = np.mean(loss_history[-convergence_interval:])
