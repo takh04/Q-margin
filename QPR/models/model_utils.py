@@ -1,4 +1,3 @@
-import logging
 import time
 import numpy as np
 import torch
@@ -25,7 +24,6 @@ def train(self, X, y, convergence_interval=10):
         
         pred = self.model(X_batch)
         loss = loss_fn(pred, y_batch)
-        
         pred_labels = torch.argmax(pred, dim=1)
         train_accuracy = (pred_labels == y_batch).float().mean().item()
         if train_accuracy >= best_train_accuracy:
@@ -37,11 +35,6 @@ def train(self, X, y, convergence_interval=10):
         opt.step()
 
         loss_history.append(loss.item())
-        logging.debug(f"{step} - loss: {loss.item()}")
-
-        if np.isnan(loss.item()):
-            logging.info(f"nan encountered. Training aborted.")
-            break
         if step % 1000 == 0:
             print(f"Step {step}, Loss {loss.item()}, Train Accuracy {train_accuracy}, Best Train Accuracy {best_train_accuracy}")
         
