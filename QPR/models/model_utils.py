@@ -64,7 +64,7 @@ def train(self, X, y, convergence_interval=10):
     print(f"Training took {end - start} seconds.")
     loss_history = np.array(loss_history)
     np.save(self.PATH1 + self.PATH2 + "loss_history.npy", loss_history)
-    if convergence_interval is "overfit":
+    if convergence_interval == "overfit":
         self.model.load_state_dict(best_model_state)
     for param in self.model.parameters():
         self.weight_final = param.detach().numpy()
