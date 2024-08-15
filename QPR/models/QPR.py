@@ -164,4 +164,4 @@ class QPRVariationalClassifier(BaseEstimator, ClassifierMixin):
         f.write(f"Generalization Gap: {generalization_gap}\n")
         np.save(self.PATH1 + self.PATH2 + "margin_dist.npy", margin_dist)
         np.save(self.PATH1 + self.PATH2 + "margin_boxplot.npy", margin_boxplot)
-        return generalization_gap, mu_marg_Q1, mu_marg_Q2, mu_marg_Q3, mu_marg_mean, mu_param, mu_param_eff1, mu_param_eff2
+        return generalization_gap, train_acc, test_acc, mu_marg_Q1, mu_marg_Q2, mu_marg_Q3, mu_marg_mean, mu_param, mu_param_eff1, mu_param_eff2
