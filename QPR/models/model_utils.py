@@ -11,6 +11,8 @@ def train(self, X, y, convergence_interval=10):
     opt = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
     loss_history = []
     start = time.time()
+    best_train_accuracy = 0.0
+    best_model_state = None
     for step in range(self.max_steps):
           
         batch_index = np.random.randint(0, len(X), (self.batch_size,))
@@ -19,7 +21,7 @@ def train(self, X, y, convergence_interval=10):
         
         pred = self.model(X_batch)
         loss = loss_fn(pred, y_batch)
-        
+
         opt.zero_grad()
         loss.backward()
         opt.step()
@@ -30,23 +32,36 @@ def train(self, X, y, convergence_interval=10):
         if np.isnan(loss.item()):
             logging.info(f"nan encountered. Training aborted.")
             break
-        
-        if step % 50 == 0 :
-            print(f"Step {step}, Loss {loss.item()}")
-        
-        if step > 2 * convergence_interval:
 
-            average1 = np.mean(loss_history[-convergence_interval:])
-            average2 = np.mean(loss_history[-2 * convergence_interval:-convergence_interval])
-            std1 = np.std(loss_history[-convergence_interval:])
-            if np.abs(average1 - average2) < std1 / np.sqrt(convergence_interval) / 2:
-                print(f"Convergence reached at step {step}")
-                break
+        if convergence_interval is "overfit":
+            with torch.no_grad():
+                train_pred = self.model(torch.tensor(X_batch, dtype=torch.float32))
+                train_pred_labels = torch.argmax(train_pred, dim=1)
+                train_accuracy = (train_pred_labels == torch.tensor(y_batch)).float().mean().item()
+                if train_accuracy > best_train_accuracy:
+                    best_train_accuracy = train_accuracy
+                    best_model_state = self.model.state_dict()
+            
+            if step % 100 == 0:
+                print(f"Step {step}, Loss {loss.item()}, Train Accuracy {train_accuracy}, Best Train Accuracy {best_train_accuracy}")
+        else:
+            if step % 100 == 0 :
+                print(f"Step {step}, Loss {loss.item()}")
+            if step > 2 * convergence_interval:
+                average1 = np.mean(loss_history[-convergence_interval:])
+                average2 = np.mean(loss_history[-2 * convergence_interval:-convergence_interval])
+                std1 = np.std(loss_history[-convergence_interval:])
+                if np.abs(average1 - average2) < std1 / np.sqrt(convergence_interval) / 2:
+                    print(f"Convergence reached at step {step}")
+                    break
+            
             
     end = time.time()
     print(f"Training took {end - start} seconds.")
     loss_history = np.array(loss_history)
     np.save(self.PATH1 + self.PATH2 + "loss_history.npy", loss_history)
+    if convergence_interval is "overfit":
+        self.model.load_state_dict(best_model_state)
     for param in self.model.parameters():
         self.weight_final = param.detach().numpy()
    
