@@ -94,8 +94,8 @@ class QPRVariationalClassifier(BaseEstimator, ClassifierMixin):
         self.PATH2 = f"{self.n_layers}L_{self.max_steps}MS_{self.batch_size}BS_{self.learning_rate}LR_{self.convergence_interval}conv/{self.num_samples}S/{self.exp}E/"
         os.makedirs(self.PATH1 + self.PATH2, exist_ok=True)
         self.num_params, self.model = construct_model(self.n_qubits_, self.n_layers, self.var_ansatz, self.n_classes_)
-        for param in self.model.parameters():
-            self.weight_init = param.detach().numpy()
+        parameters_list = [param.detach().numpy() for param in self.model.parameters()]
+        self.weight_init = np.concatenate(parameters_list)
 
     def fit(self, X, y):
         self.initialize()
@@ -139,16 +139,16 @@ class QPRVariationalClassifier(BaseEstimator, ClassifierMixin):
         return margin_dist.detach().numpy(), margin_boxplot, margin_Q1, margin_Q2, margin_Q3, margin_mean
     
     def get_mu_params(self, X, y):
-        mu_param = self.num_params * np.log(self.num_params)
+        mu_param = self.num_params
 
         def count_eff(init, final, threshold):
             changes = np.abs(final - init)
             num_changes = np.sum(changes > threshold)
             return num_changes
         
-        mu_param_eff1 = count_eff(self.weight_init, self.weight_final, 0.5)
-        mu_param_eff2 = count_eff(self.weight_init, self.weight_final, 0.1)
-        return mu_param, mu_param_eff1, mu_param_eff2
+        mu_param_eff10 = count_eff(self.weight_init, self.weight_final, 0.1)
+        mu_param_eff100 = count_eff(self.weight_init, self.weight_final, 0.01)
+        return mu_param, mu_param_eff10, mu_param_eff100
     
     def get_results(self, X_train, y_train, X_test, y_test):
         train_acc = self.score(X_train, y_train)
@@ -156,7 +156,7 @@ class QPRVariationalClassifier(BaseEstimator, ClassifierMixin):
         generalization_gap = train_acc - test_acc
         margin_dist, margin_boxplot, mu_marg_Q1, mu_marg_Q2, mu_marg_Q3, mu_marg_mean = self.get_margins(X_train, y_train)
 
-        mu_param, mu_param_eff1, mu_param_eff2 = self.get_mu_params(X_train, y_train)
+        mu_param, mu_param_eff10, mu_param_eff100 = self.get_mu_params(X_train, y_train)
 
         f = open(self.PATH1 + self.PATH2 + "results.txt", "w")
         f.write(f"Train Accuracy: {train_acc}\n")
@@ -167,8 +167,8 @@ class QPRVariationalClassifier(BaseEstimator, ClassifierMixin):
         f.write(f"Margin Q3: {mu_marg_Q3}\n")
         f.write(f"Margin Mean: {mu_marg_mean}\n")
         f.write(f"Mu Params: {mu_param}\n")
-        f.write(f"Mu Params Eff1: {mu_param_eff1}\n")
-        f.write(f"Mu Params Eff2: {mu_param_eff2}\n")
+        f.write(f"Mu Params eff10: {mu_param_eff10}\n")
+        f.write(f"Mu Params eff100: {mu_param_eff100}\n")
         f.close()
         
         np.save(self.PATH1 + self.PATH2 + "margin_dist.npy", margin_dist)
@@ -178,10 +178,10 @@ class QPRVariationalClassifier(BaseEstimator, ClassifierMixin):
         np.save(self.PATH1 + self.PATH2 + "mu_marg_Q3.npy", mu_marg_Q3)
         np.save(self.PATH1 + self.PATH2 + "mu_marg_mean.npy", mu_marg_mean)
         np.save(self.PATH1 + self.PATH2 + "mu_param.npy", mu_param)
-        np.save(self.PATH1 + self.PATH2 + "mu_param_eff1.npy", mu_param_eff1)
-        np.save(self.PATH1 + self.PATH2 + "mu_param_eff2.npy", mu_param_eff2)
+        np.save(self.PATH1 + self.PATH2 + "mu_param_eff10.npy", mu_param_eff10)
+        np.save(self.PATH1 + self.PATH2 + "mu_param_eff100.npy", mu_param_eff100)
         np.save(self.PATH1 + self.PATH2 + "train_acc.npy", np.array(train_acc))
         np.save(self.PATH1 + self.PATH2 + "test_acc.npy", np.array(test_acc))
         np.save(self.PATH1 + self.PATH2 + "generalization_gap.npy", np.array(generalization_gap))
         
-        return generalization_gap, train_acc, test_acc, mu_marg_Q1, mu_marg_Q2, mu_marg_Q3, mu_marg_mean, mu_param, mu_param_eff1, mu_param_eff2
+        return generalization_gap, train_acc, test_acc, mu_marg_Q1, mu_marg_Q2, mu_marg_Q3, mu_marg_mean, mu_param, mu_param_eff10, mu_param_eff100

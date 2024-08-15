@@ -58,8 +58,8 @@ def run_all(r, n_qubits, var_ansatz_list, num_layers_list, exp_list):
     mu_marg_Q2_list = np.array([])
     mu_marg_mean_list = np.array([])
     mu_param_list = np.array([])
-    mu_param_eff_list = np.array([])
-    mu_param_eff2_list = np.array([])
+    mu_param_eff10_list = np.array([])
+    mu_param_eff100_list = np.array([])
 
     for var_ansatz in var_ansatz_list:
         for num_layers in num_layers_list:
@@ -72,7 +72,7 @@ def run_all(r, n_qubits, var_ansatz_list, num_layers_list, exp_list):
                 model = QPRVariationalClassifier(n_qubits=n_qubits, var_ansatz=var_ansatz, n_layers=num_layers, max_steps=max_steps, batch_size=batch_size, learning_rate=learning_rate,  
                                                                                  convergence_interval=convergence_interval, num_classes=num_classes, num_samples=num_samples, r=r, exp=exp)
                 model.fit(X_train, y_train)
-                g, train_acc, test_acc, mu_marg_Q1, mu_marg_Q2, mu_marg_Q3, mu_marg_mean, mu_param, mu_param_eff1, mu_param_eff2  = model.get_results(X_train, y_train, X_test, y_test)
+                g, train_acc, test_acc, mu_marg_Q1, mu_marg_Q2, mu_marg_Q3, mu_marg_mean, mu_param, mu_param_eff10, mu_param_eff100  = model.get_results(X_train, y_train, X_test, y_test)
 
                 # List of generalization gaps, train and test accuracies
                 g_list = np.append(g_list, g)
@@ -86,14 +86,14 @@ def run_all(r, n_qubits, var_ansatz_list, num_layers_list, exp_list):
                         
                 # Lists of parameter based complexity measures
                 mu_param_list = np.append(mu_param_list, mu_param)
-                mu_param_eff_list = np.append(mu_param_eff_list, mu_param_eff1)
-                mu_param_eff2_list = np.append(mu_param_eff2_list, mu_param_eff2)
+                mu_param_eff10_list = np.append(mu_param_eff10_list, mu_param_eff10)
+                mu_param_eff100_list = np.append(mu_param_eff100_list, mu_param_eff100)
 
                                             
-    mu_lists = np.array([mu_marg_Q1_list, mu_marg_Q2_list, mu_marg_mean_list, mu_param_list, mu_param_eff_list, mu_param_eff2_list])
+    mu_lists = np.array([mu_marg_Q1_list, mu_marg_Q2_list, mu_marg_mean_list, mu_param_list, mu_param_eff10_list, mu_param_eff100_list])
     MI_g_mu_list, Tau_g_mu_list, p_value_g_mu_list, MI_test_mu_list, Tau_test_mu_list, p_value_test_mu_list = get_correlation(g_list, test_acc_list, mu_lists)
     
-    PATH = f'results_correlation/r={r}/'
+    PATH = f'results_correlation/r={r}/num_qubits={n_qubits}/'
     if not os.path.exists(PATH):
         os.makedirs(PATH)
     np.save(PATH + 'others/g_list.npy', g_list)
@@ -103,8 +103,8 @@ def run_all(r, n_qubits, var_ansatz_list, num_layers_list, exp_list):
     np.save(PATH + 'others/mu_marg_Q2_list.npy', mu_marg_Q2_list)
     np.save(PATH + 'others/mu_marg_mean_list.npy', mu_marg_mean_list)
     np.save(PATH + 'others/mu_param_list.npy', mu_param_list)
-    np.save(PATH + 'others/mu_param_eff_list.npy', mu_param_eff_list)
-    np.save(PATH + 'others/mu_param_eff2_list.npy', mu_param_eff2_list)
+    np.save(PATH + 'others/mu_param_eff10_list.npy', mu_param_eff10_list)
+    np.save(PATH + 'others/mu_param_eff100_list.npy', mu_param_eff100_list)
 
     np.save(PATH + 'MI_g_mu_list.npy', MI_g_mu_list)
     np.save(PATH + 'Tau_g_mu_list.npy', Tau_g_mu_list)
