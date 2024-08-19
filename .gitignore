@@ -1,1 +1,7 @@
 QPR/results/
+QPR/Archive/
+QPR/.DS_Store
+QPR/models/__pycache__/
+
+NQE/__pycache__/
+NQE/models/__pycache__/
