@@ -94,8 +94,8 @@ def run_all(r, n_qubits, var_ansatz_list, num_layers_list, exp_list):
     MI_g_mu_list, Tau_g_mu_list, p_value_g_mu_list, MI_test_mu_list, Tau_test_mu_list, p_value_test_mu_list = get_correlation(g_list, test_acc_list, mu_lists)
     
     PATH = f'results_correlation/r={r}/num_qubits={n_qubits}/'
-    if not os.path.exists(PATH):
-        os.makedirs(PATH)
+    if not os.path.exists(PATH + 'others/'):
+        os.makedirs(PATH + 'others/')
     np.save(PATH + 'others/g_list.npy', g_list)
     np.save(PATH + 'others/train_acc_list.npy', train_acc_list)
     np.save(PATH + 'others/test_acc_list.npy', test_acc_list)
@@ -113,12 +113,11 @@ def run_all(r, n_qubits, var_ansatz_list, num_layers_list, exp_list):
     np.save(PATH + 'Tau_test_mu_list.npy', Tau_test_mu_list)
     np.save(PATH + 'p_value_test_mu_list.npy', p_value_test_mu_list)
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--r", type=float, default=0.0)      
-    parser.add_argument("--n_qubits", type=int, default=4) 
-    parser.add_argument("--var_ansatz_list", nargs="+", type=str, default=["QCNN_not_shared", "QCNN_shared", "SEL"])
-    parser.add_argument("--num_layers_list", nargs="+", type=int, default=[1,3,5,7,9]) 
-    parser.add_argument("--exp_list", nargs="+", type=int, default=[1])         
-    args, _ = parser.parse_known_args()
-    run_all(**vars(args))
+var_ansatz_list = ["QCNN_not_shared", "QCNN_shared", "SEL"]
+num_layers_list = [1,3,5,7,9]
+exp_list = [1,2,3,4,5]
+r_list = [0.0, 0.5, 1.0]
+num_qubits_list = [4, 8]
+for r in r_list:
+    for num_qubits in num_qubits_list:
+        run_all(r, num_qubits, var_ansatz_list, num_layers_list, exp_list)
