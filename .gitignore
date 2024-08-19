@@ -1,4 +1,6 @@
 QPR/results/
+QPR/results_correlation/
+QPR/results_correlation_old/
 QPR/Archive/
 QPR/.DS_Store
 QPR/models/__pycache__/
