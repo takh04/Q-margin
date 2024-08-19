@@ -92,11 +92,13 @@ class IQPVariationalClassifier(BaseEstimator, ClassifierMixin):
 
         margin_dist = torch.where(predicted_labels == y, R, torch.zeros_like(R))
         margin_mean = margin_dist.mean().item()
+        margin_min = margin_dist.min().item()
         margin_Q1 = torch.quantile(margin_dist, 0.25).item()
         margin_Q2 = torch.quantile(margin_dist, 0.50).item()
         margin_Q3 = torch.quantile(margin_dist, 0.75).item()
-        margin_IQR = margin_Q3 - margin_Q1
-        margin_boxplot = np.array([margin_Q1 - 1.5 * margin_IQR, margin_Q1, margin_Q2, margin_Q3, margin_Q3 + 1.5 * margin_IQR])
+        margin_max = margin_dist.max().item()
+        #margin_IQR = margin_Q3 - margin_Q1
+        margin_boxplot = np.array([margin_min, margin_Q1, margin_Q2, margin_Q3, margin_max])
         return margin_dist.detach().numpy(), margin_boxplot, margin_mean
     
     def get_results(self, X_train, y_train, X_test, y_test):
