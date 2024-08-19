@@ -113,11 +113,14 @@ def run_all(r, n_qubits, var_ansatz_list, num_layers_list, exp_list):
     np.save(PATH + 'Tau_test_mu_list.npy', Tau_test_mu_list)
     np.save(PATH + 'p_value_test_mu_list.npy', p_value_test_mu_list)
 
-var_ansatz_list = ["QCNN_not_shared", "QCNN_shared", "SEL"]
+#var_ansatz_list = ["QCNN_not_shared", "QCNN_shared", "SEL"]
+var_ansatz_list = ["QCNN_not_shared"]
 num_layers_list = [1,3,5,7,9]
-exp_list = [1,2,3,4,5]
+#exp_list = [1,2,3,4,5]
+exp_list = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 r_list = [0.0, 0.5, 1.0]
-num_qubits_list = [4, 8]
+#num_qubits_list = [4, 8]
+num_qubits_list = [8]
 for r in r_list:
     for num_qubits in num_qubits_list:
         run_all(r, num_qubits, var_ansatz_list, num_layers_list, exp_list)
