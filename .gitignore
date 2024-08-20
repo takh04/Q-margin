@@ -7,6 +7,9 @@ QPR/models/__pycache__/
 
 NQE/__pycache__/
 NQE/models/__pycache__/
+NQE/models/data_reuploading.py
+NQE/results/DataReuploadingClassifier
+NQE/results/TQE3Classifier
 NQE/kmnist/
 
 .DS_Store
