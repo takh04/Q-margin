@@ -5,6 +5,32 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 import torch
 from models.model_utils import *
 
+def get_trace_distance(n_qubits, n_repeats, n_layers, X_train, Y_train):
+    x1 = torch.tensor(X_train[Y_train == 1], dtype=torch.float32)
+    x0 = torch.tensor(X_train[Y_train == 0], dtype=torch.float32)
+
+    dev = qml.device("default.qubit", wires=n_qubits)
+    @qml.qnode(dev)
+    def circuit(inputs):
+        qml.IQPEmbedding(inputs, n_repeats=n_repeats, wires=range(n_qubits))
+        return qml.density_matrix(wires=range(n_qubits))
+    
+    class Distance(torch.nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.qlayer = qml.qnn.TorchLayer(circuit, weight_shapes={})
+        def forward(self, x0, x1):
+            rhos1 = self.qlayer(x1)
+            rhos0 = self.qlayer(x0)
+
+            rho1 = torch.sum(rhos1, dim=0) / len(x1)
+            rho0 = torch.sum(rhos0, dim=0) / len(x0)
+            rho_diff = rho1 - rho0
+            eigvals = torch.linalg.eigvals(rho_diff)
+            return 0.5 * torch.real(torch.sum(torch.abs(eigvals)))
+
+    model = Distance()
+    return model(x0, x1).item()
 
 def construct_model(n_qubits, n_repeats, n_layers):
     dev = qml.device("default.qubit", wires=n_qubits)
@@ -105,13 +131,9 @@ class IQPVariationalClassifier(BaseEstimator, ClassifierMixin):
         train_acc = self.score(X_train, y_train)
         test_acc = self.score(X_test, y_test)
 
-        # Test code
-        print(f"Train Accuracy: {train_acc}")
-        print(f"Test Accuracy: {test_acc}")
-        # Test code end
-
         generalization_gap = train_acc - test_acc
         margin_dist, margin_boxplot, margin_mean = self.get_margins(X_train, y_train)
+        trace_distance = get_trace_distance(self.n_qubits_, self.n_repeats, self.n_layers, X_train, y_train)
 
         f = open(self.PATH + "results.txt", "w")
         f.write(f"Train Accuracy: {train_acc}\n")
@@ -121,5 +143,6 @@ class IQPVariationalClassifier(BaseEstimator, ClassifierMixin):
         np.save(self.PATH + "margin_dist.npy", margin_dist)
         np.save(self.PATH + "margin_boxplot.npy", margin_boxplot)
         np.save(self.PATH + "margin_mean.npy", margin_mean)
+        np.save(self.PATH + "trace_distance.npy", trace_distance)
         
         
