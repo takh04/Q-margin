@@ -12,4 +12,6 @@ NQE/results/DataReuploadingClassifier
 NQE/results/TQE3Classifier
 NQE/kmnist/
 
+NQE/results/
+NQE/results_old/
 .DS_Store
