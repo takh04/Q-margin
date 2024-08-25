@@ -178,9 +178,13 @@ class NQEClassifier(BaseEstimator, ClassifierMixin):
                 self.linear_relu_stack1 = nn.Sequential(
                     nn.Linear(n_qubits, 2 * n_qubits),
                     nn.ReLU(),
-                    nn.Linear(2 * n_qubits, 2 * n_qubits),
+                    nn.Linear(2 * n_qubits, 4 * n_qubits),
                     nn.ReLU(),
-                    nn.Linear(2 * n_qubits, n_qubits)
+                    nn.Linear(4 * n_qubits, 4 * n_qubits),
+                    nn.ReLU(),
+                    nn.Linear(4 * n_qubits, 2 * n_qubits),
+                    nn.ReLU(),
+                    nn.Linear(2 * n_qubits, n_qubits),
                 )
             def forward(self, x1, x2):
                 x1 = self.linear_relu_stack1(x1)
@@ -206,7 +210,7 @@ class NQEClassifier(BaseEstimator, ClassifierMixin):
                 loss.backward()
                 opt.step()
 
-                if it % 100 == 0:
+                if it % 1000 == 0:
                     print(f"Iterations: {it} Loss: {loss.item()}")
 
                 if it > 2 * self.convergence_interval:
@@ -216,7 +220,7 @@ class NQEClassifier(BaseEstimator, ClassifierMixin):
                     if np.abs(average1 - average2) < std1 / np.sqrt(self.convergence_interval) / 2:
                         print(f"Convergence reached at step {it}")
                         break
-            
+                    
             print("NQE Optimization Complete")
             torch.save(model.state_dict(), self.PATH + "model.pt")
             return model.state_dict()
