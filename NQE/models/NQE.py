@@ -236,7 +236,11 @@ class NQEClassifier(BaseEstimator, ClassifierMixin):
                 self.linear_relu_stack1 = nn.Sequential(
                     nn.Linear(n_qubits, 2 * n_qubits),
                     nn.ReLU(),
-                    nn.Linear(2 * n_qubits, 2 * n_qubits),
+                    nn.Linear(2 * n_qubits, 4 * n_qubits),
+                    nn.ReLU(),
+                    nn.Linear(4 * n_qubits, 4 * n_qubits),
+                    nn.ReLU(),
+                    nn.Linear(4 * n_qubits, 2 * n_qubits),
                     nn.ReLU(),
                     nn.Linear(2 * n_qubits, n_qubits)
                 )
