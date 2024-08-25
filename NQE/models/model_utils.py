@@ -5,7 +5,7 @@ import torch
 import pennylane as qml
 
 # Model Training Utility
-def train(self, X, y, convergence_interval=10):
+def train(self, X, y, convergence_interval=100):
     self.model.train()
     loss_fn = torch.nn.CrossEntropyLoss()
     opt = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
@@ -32,7 +32,7 @@ def train(self, X, y, convergence_interval=10):
             logging.info(f"nan encountered. Training aborted.")
             break
         
-        if step % 50 == 0 :
+        if step % 1000 == 0:
             print(f"Step {step}, Loss {loss.item()}")
         
         if step > 2 * convergence_interval:
