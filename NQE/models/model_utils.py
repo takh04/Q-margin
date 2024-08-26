@@ -301,62 +301,7 @@ def get_qcnn(params, num_wires, num_layers, parameter_sharing):
 #====================================================================================================
 
 # Trace Distance Utility
-def get_trace_distance(n_qubits, n_repeats, n_layers, X_train, Y_train, batch_size=32):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    
-    # Convert the data to tensors and move to the appropriate device
-    X_train = torch.tensor(X_train, dtype=torch.float32).to(device)
-    Y_train = torch.tensor(Y_train, dtype=torch.float32).to(device)
-
-    x1_indices = torch.where(Y_train == 1)[0]
-    x0_indices = torch.where(Y_train == 0)[0]
-
-    dev = qml.device("default.qubit", wires=n_qubits)
-
-    @qml.qnode(dev)
-    def circuit(inputs):
-        qml.IQPEmbedding(inputs, n_repeats=n_repeats, wires=range(n_qubits))
-        return qml.density_matrix(wires=range(n_qubits))
-
-    class Distance(torch.nn.Module):
-        def __init__(self):
-            super().__init__()
-            self.qlayer = qml.qnn.TorchLayer(circuit, weight_shapes={})
-
-        def forward(self, x0_batch, x1_batch):
-            rhos1 = self.qlayer(x1_batch)
-            rhos0 = self.qlayer(x0_batch)
-
-            rho1 = torch.sum(rhos1, dim=0) / len(x1_batch)
-            rho0 = torch.sum(rhos0, dim=0) / len(x0_batch)
-            rho_diff = rho1 - rho0
-            eigvals = torch.linalg.eigvals(rho_diff)
-            return 0.5 * torch.real(torch.sum(torch.abs(eigvals)))
-
-    model = Distance().to(device)
-
-    # Process the x1 data in batches
-    rho1_sum = torch.zeros((2**n_qubits, 2**n_qubits), dtype=torch.cfloat, device=device)
-    for i in range(0, len(x1_indices), batch_size):
-        x1_batch = X_train[x1_indices[i:i + batch_size]]
-        rho1_sum += model.qlayer(x1_batch).sum(dim=0)
-
-    rho1 = rho1_sum / len(x1_indices)
-
-    # Process the x0 data in batches
-    rho0_sum = torch.zeros((2**n_qubits, 2**n_qubits), dtype=torch.cfloat, device=device)
-    for i in range(0, len(x0_indices), batch_size):
-        x0_batch = X_train[x0_indices[i:i + batch_size]]
-        rho0_sum += model.qlayer(x0_batch).sum(dim=0)
-
-    rho0 = rho0_sum / len(x0_indices)
-
-    # Calculate the trace distance
-    rho_diff = rho1 - rho0
-    eigvals = torch.linalg.eigvals(rho_diff)
-    return 0.5 * torch.real(torch.sum(torch.abs(eigvals))).item()
-
-def get_trace_distance_TQE(n_qubits, n_repeats, n_layers, n_layers_TQE, trained_params_embedding, X_train, Y_train):
+def get_trace_distance(n_qubits, n_repeats, n_layers, X_train, Y_train, batch_size=32, n_layers_TQE=None, trained_params_embedding=None):
     x1 = torch.tensor(X_train[Y_train == 1], dtype=torch.float32)
     x0 = torch.tensor(X_train[Y_train == 0], dtype=torch.float32)
 
@@ -370,25 +315,38 @@ def get_trace_distance_TQE(n_qubits, n_repeats, n_layers, n_layers_TQE, trained_
 
     @qml.qnode(dev)
     def circuit(inputs):
-        for i in range(n_layers_TQE):   
-            TQE_ansatz(trained_params_embedding[i * 2 * n_qubits: (i + 1) * 2 * n_qubits])
+        if isinstance(n_layers_TQE, int):
+            for i in range(n_layers_TQE):   
+                TQE_ansatz(trained_params_embedding[i * 2 * n_qubits: (i + 1) * 2 * n_qubits])
+                qml.IQPEmbedding(inputs, n_repeats=n_repeats, wires=range(n_qubits))
+        else:
             qml.IQPEmbedding(inputs, n_repeats=n_repeats, wires=range(n_qubits))
         return qml.density_matrix(wires=range(n_qubits))
-    
 
-    class Distance(torch.nn.Module):
+    class get_rho(torch.nn.Module):
         def __init__(self):
             super().__init__()
             self.qlayer = qml.qnn.TorchLayer(circuit, weight_shapes={})
-        def forward(self, x0, x1):
-            rhos1 = self.qlayer(x1)
-            rhos0 = self.qlayer(x0)
 
-            rho1 = torch.sum(rhos1, dim=0) / len(x1)
-            rho0 = torch.sum(rhos0, dim=0) / len(x0)
-            rho_diff = rho1 - rho0
-            eigvals = torch.linalg.eigvals(rho_diff)
-            return 0.5 * torch.real(torch.sum(torch.abs(eigvals)))
+        def forward(self, x):
+            rhos = self.qlayer(x)
+            rho = torch.sum(rhos, dim=0)
+            return rho
+    model = get_rho()
 
-    model = Distance()
-    return model(x0, x1).item()
+    # Process the x1 data in batches
+    rho1_sum = torch.zeros((2**n_qubits, 2**n_qubits), dtype=torch.cfloat)
+    for i in range(0, len(x1), batch_size):
+        rho1_sum += model(x1[i:i + batch_size])
+    rho1 = rho1_sum / len(x1)
+
+    # Process the x0 data in batches
+    rho0_sum = torch.zeros((2**n_qubits, 2**n_qubits), dtype=torch.cfloat)
+    for i in range(0, len(x0), batch_size):
+        rho0_sum += model(x0[i:i + batch_size])
+    rho0 = rho0_sum / len(x0)
+
+    # Calculate the trace distance
+    rho_diff = rho1 - rho0
+    eigvals = torch.linalg.eigvals(rho_diff)
+    return 0.5 * torch.real(torch.sum(torch.abs(eigvals))).item()
