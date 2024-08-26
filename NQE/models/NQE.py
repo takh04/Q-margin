@@ -6,33 +6,6 @@ import torch
 from torch import nn
 from models.model_utils import *
 
-def get_trace_distance(n_qubits, n_repeats, n_layers, X_train, Y_train):
-    x1 = torch.tensor(X_train[Y_train == 1], dtype=torch.float32)
-    x0 = torch.tensor(X_train[Y_train == 0], dtype=torch.float32)
-
-    dev = qml.device("default.qubit", wires=n_qubits)
-    @qml.qnode(dev)
-    def circuit(inputs):
-        qml.IQPEmbedding(inputs, n_repeats=n_repeats, wires=range(n_qubits))
-        return qml.density_matrix(wires=range(n_qubits))
-    
-    class Distance(torch.nn.Module):
-        def __init__(self):
-            super().__init__()
-            self.qlayer = qml.qnn.TorchLayer(circuit, weight_shapes={})
-        def forward(self, x0, x1):
-            rhos1 = self.qlayer(x1)
-            rhos0 = self.qlayer(x0)
-
-            rho1 = torch.sum(rhos1, dim=0) / len(x1)
-            rho0 = torch.sum(rhos0, dim=0) / len(x0)
-            rho_diff = rho1 - rho0
-            eigvals = torch.linalg.eigvals(rho_diff)
-            return 0.5 * torch.real(torch.sum(torch.abs(eigvals)))
-
-    model = Distance()
-    return model(x0, x1).item()
-
 def construct_model(n_qubits, n_repeats, n_layers):
     dev = qml.device("default.qubit", wires=n_qubits)
     meas_wires = [0]
@@ -200,7 +173,7 @@ class NQEClassifier(BaseEstimator, ClassifierMixin):
             opt = torch.optim.SGD(model.parameters(), lr=0.01)
             loss_history = []
             for it in range(self.max_steps):
-                X1_batch, X2_batch, Y_batch = new_data(self.batch_size, X, y)
+                X1_batch, X2_batch, Y_batch = new_data(64, X, y)
                 pred = model(X1_batch, X2_batch)
                 pred, Y_batch = pred.to(torch.float32), Y_batch.to(torch.float32)
                 loss = loss_fn(pred, Y_batch)
