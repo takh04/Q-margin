@@ -211,7 +211,7 @@ class TQE3Classifier(BaseEstimator, ClassifierMixin):
         
         generalization_gap = train_acc - test_acc
         margin_dist, margin_boxplot, margin_mean = self.get_margins(X_train, y_train)
-        trace_distance = get_trace_distance_TQE(self.n_qubits_, self.n_repeats, self.n_layers, self.n_layers_TQE, self.trained_params_embedding, X_train, y_train)
+        trace_distance = get_trace_distance(self.n_qubits_, self.n_repeats, self.n_layers, X_train, y_train, 32, self.n_layers_TQE, self.trained_params_embedding)
 
         f = open(self.PATH + "results.txt", "w")
         f.write(f"Train Accuracy: {train_acc}\n")
