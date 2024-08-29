@@ -16,3 +16,7 @@ NQE/kmnist/
 NQE/results/
 NQE/results_old/
 .DS_Store
+
+#Temporary
+NQE/Figures/
+QPR/Figures/
