@@ -120,28 +120,56 @@ class QPRVariationalClassifier(BaseEstimator, ClassifierMixin):
         probabilities = self.model(torch.from_numpy(X).to(torch.float32))
         return probabilities.detach().numpy()
     
-    def score(self, X, y):
-        probabilities = self.model(torch.from_numpy(X).to(torch.float32))
-        y = torch.from_numpy(y).to(torch.long)
-        predictions = torch.argmax(probabilities, dim=1)
-        return (predictions == y).float().mean().item()
-    
-    def get_margins(self, X, y):
-        probabilities = self.model(torch.from_numpy(X).to(torch.float32))
-        y = torch.from_numpy(y).to(torch.long)
+    def score_and_margins(self, X, y, batch_size=1024):
+        num_samples = X.shape[0]
+        correct_predictions = 0
+        total_samples = 0
+        margin_dists = []
 
-        top_two_probs, top_two_indices = torch.topk(probabilities, 2, dim=1)
-        R = top_two_probs[:, 0] - top_two_probs[:, 1]
-        predicted_labels = torch.argmax(probabilities, dim=1)
+        for i in range(0, num_samples, batch_size):
+            # Extract the batch
+            X_batch = X[i:i + batch_size]
+            y_batch = y[i:i + batch_size]
 
-        margin_dist = torch.where(predicted_labels == y, R, torch.zeros_like(R))
+            # Convert to tensors
+            X_tensor = torch.from_numpy(X_batch).to(torch.float32)
+            y_tensor = torch.from_numpy(y_batch).to(torch.long)
+
+            # Get probabilities for the batch
+            with torch.no_grad():
+                probabilities = self.model(X_tensor)
+            
+            # Score calculation
+            predictions = torch.argmax(probabilities, dim=1)
+            correct_predictions += (predictions == y_tensor).sum().item()
+            total_samples += y_batch.shape[0]
+
+            # Margin calculation
+            correct_label_probs = probabilities.gather(1, y_tensor.view(-1, 1)).squeeze(1)
+            incorrect_label_probs, _ = torch.max(probabilities.masked_fill(torch.eye(probabilities.size(1))[y_tensor].bool(), float('-inf')), dim=1)
+            margin_dist_batch = correct_label_probs - incorrect_label_probs
+
+            # Zero out margins for incorrect predictions
+            margin_dist_batch = torch.where(predictions == y_tensor, margin_dist_batch, torch.zeros_like(margin_dist_batch))
+            margin_dists.append(margin_dist_batch)
+
+        # Concatenate all margins
+        margin_dist = torch.cat(margin_dists, dim=0)
+
+        # Calculate overall accuracy
+        accuracy = correct_predictions / total_samples
+
+        # Calculate margin statistics
         margin_mean = margin_dist.mean().item()
+        margin_min = margin_dist.min().item()
         margin_Q1 = torch.quantile(margin_dist, 0.25).item()
         margin_Q2 = torch.quantile(margin_dist, 0.50).item()
         margin_Q3 = torch.quantile(margin_dist, 0.75).item()
-        margin_IQR = margin_Q3 - margin_Q1
-        margin_boxplot = np.array([margin_Q1 - 1.5 * margin_IQR, margin_Q1, margin_Q2, margin_Q3, margin_Q3 + 1.5 * margin_IQR])
-        return margin_dist.detach().numpy(), margin_boxplot, margin_Q1, margin_Q2, margin_Q3, margin_mean
+        margin_max = margin_dist.max().item()
+        margin_boxplot = np.array([margin_min, margin_Q1, margin_Q2, margin_Q3, margin_max])
+
+        # Return both accuracy and margin-related outputs
+        return accuracy, margin_dist.detach().numpy(), margin_boxplot, margin_min, margin_Q1, margin_Q2, margin_Q3, margin_max
     
     def get_mu_params(self, X, y):
         mu_param = self.num_params
@@ -156,11 +184,9 @@ class QPRVariationalClassifier(BaseEstimator, ClassifierMixin):
         return mu_param, mu_param_eff10, mu_param_eff100
     
     def get_results(self, X_train, y_train, X_test, y_test):
-        train_acc = self.score(X_train, y_train)
+        train_acc, margin_dist, margin_boxplot, mu_marg_Q1, mu_marg_Q2, mu_marg_Q3, mu_marg_mean = self.score_and_margins(X_train, y_train) 
         test_acc = self.score(X_test, y_test)
         generalization_gap = train_acc - test_acc
-        margin_dist, margin_boxplot, mu_marg_Q1, mu_marg_Q2, mu_marg_Q3, mu_marg_mean = self.get_margins(X_train, y_train)
-
         mu_param, mu_param_eff10, mu_param_eff100 = self.get_mu_params(X_train, y_train)
 
         f = open(self.PATH1 + self.PATH2 + "results.txt", "w")
