@@ -48,6 +48,7 @@ def train(self, X, y, convergence_interval=100):
     print(f"Training took {end - start} seconds.")
     loss_history = np.array(loss_history)
     np.save(self.PATH + "loss_history", loss_history)
+    torch.save(self.model.state_dict(), self.PATH + "model_params.pth")
 
 #====================================================================================================
   
