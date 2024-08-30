@@ -51,7 +51,67 @@ def train(self, X, y, convergence_interval=100):
     torch.save(self.model.state_dict(), self.PATH + "model_params.pth")
 
 #====================================================================================================
-  
+
+# Construct Model Utility
+
+def construct_model(n_qubits, n_repeats, n_layers):
+    dev = qml.device("default.qubit", wires=n_qubits)
+    meas_wires = [0]
+    
+    @qml.qnode(dev)
+    def circuit(inputs, params):
+        qml.IQPEmbedding(inputs, n_repeats=n_repeats, wires=range(n_qubits))
+        get_qcnn(params, n_qubits, n_layers, parameter_sharing=True)
+        return qml.probs(wires=meas_wires)
+        
+    num_params = get_num_params(n_qubits, n_layers, True)
+    weight_shapes = {"params": (num_params)}
+    
+    
+    class model(torch.nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.qlayer = qml.qnn.TorchLayer(circuit, weight_shapes=weight_shapes)
+        def forward(self, x):
+            return self.qlayer(x)
+    model = model()
+    return model
+
+def construct_model_TQE(n_qubits, n_repeats, n_layers, n_layers_TQE):
+    dev = qml.device("default.qubit", wires=n_qubits)
+    meas_wires = [0]
+    num_params = get_num_params(n_qubits, n_layers, False)
+
+    def TQE_ansatz(params):
+        for i in range(n_qubits):
+            qml.RY(params[i], wires=i)
+        for i in range(n_qubits - 1):
+            qml.IsingYY(params[i+n_qubits], wires=[i, i + 1])
+        qml.IsingYY(params[2 * n_qubits - 1], wires=[n_qubits - 1, 0])
+    
+    @qml.qnode(dev)
+    def circuit(inputs, params):
+        for i in range(n_layers_TQE):   
+            TQE_ansatz(params[i * 2 * n_qubits: (i + 1) * 2 * n_qubits])
+            qml.IQPEmbedding(inputs, n_repeats=n_repeats, wires=range(n_qubits))
+        get_qcnn(params[(n_layers_TQE) * 2 * n_qubits: (n_layers_TQE) * 2 * n_qubits + num_params], n_qubits, n_layers, parameter_sharing=False)
+        return qml.probs(wires=meas_wires)
+        
+    
+    weight_shapes = {"params": (n_layers_TQE * 2 * n_qubits + num_params)}
+    
+    class model(torch.nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.qlayer = qml.qnn.TorchLayer(circuit, weight_shapes=weight_shapes)
+        def forward(self, x):
+            return self.qlayer(x)
+    model = model()
+    return model
+
+
+#====================================================================================================
+
 # QCNN Utility
 def U_SU4(params, wires): # 15 params
     qml.U3(params[0], params[1], params[2], wires=wires[0])
@@ -300,9 +360,36 @@ def get_qcnn(params, num_wires, num_layers, parameter_sharing):
             QCNN12_not_shared(params, num_layers)
 
 #====================================================================================================
-
 # Trace Distance Utility
-def get_trace_distance(n_qubits, n_repeats, n_layers, X_train, Y_train, batch_size=32, n_layers_TQE=None, trained_params_embedding=None):
+def get_trace_distance(n_qubits, n_repeats, X_train, Y_train):
+    x1 = torch.tensor(X_train[Y_train == 1], dtype=torch.float32)
+    x0 = torch.tensor(X_train[Y_train == 0], dtype=torch.float32)
+
+    dev = qml.device("default.qubit", wires=n_qubits)
+    @qml.qnode(dev)
+    def circuit(inputs):
+        qml.IQPEmbedding(inputs, n_repeats=n_repeats, wires=range(n_qubits))
+        return qml.density_matrix(wires=range(n_qubits))
+
+    class distance(torch.nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.qlayer = qml.qnn.TorchLayer(circuit, weight_shapes={})
+
+        def forward(self, x1, x0):
+            rhos1 = self.qlayer(x1)
+            rhos0 = self.qlayer(x0)
+
+            rho1 = torch.sum(rhos1, dim=0) / len(x1)
+            rho0 = torch.sum(rhos0, dim=0) / len(x0)
+            rho_diff = rho1 - rho0
+            eigvals = torch.linalg.eigvals(rho_diff)
+            return 0.5 * torch.real(torch.sum(torch.abs(eigvals)))
+        
+    model = distance()
+    return model(x1, x0).item()
+
+def get_trace_distance_TQE(n_qubits, n_repeats, X_train, Y_train, n_layers_TQE=None, trained_params_embedding=None):
     x1 = torch.tensor(X_train[Y_train == 1], dtype=torch.float32)
     x0 = torch.tensor(X_train[Y_train == 0], dtype=torch.float32)
 
@@ -316,38 +403,173 @@ def get_trace_distance(n_qubits, n_repeats, n_layers, X_train, Y_train, batch_si
 
     @qml.qnode(dev)
     def circuit(inputs):
-        if isinstance(n_layers_TQE, int):
-            for i in range(n_layers_TQE):   
-                TQE_ansatz(trained_params_embedding[i * 2 * n_qubits: (i + 1) * 2 * n_qubits])
-                qml.IQPEmbedding(inputs, n_repeats=n_repeats, wires=range(n_qubits))
-        else:
+        for i in range(n_layers_TQE):   
+            TQE_ansatz(trained_params_embedding[i * 2 * n_qubits: (i + 1) * 2 * n_qubits])
             qml.IQPEmbedding(inputs, n_repeats=n_repeats, wires=range(n_qubits))
         return qml.density_matrix(wires=range(n_qubits))
 
-    class get_rho(torch.nn.Module):
+    class distance(torch.nn.Module):
         def __init__(self):
             super().__init__()
             self.qlayer = qml.qnn.TorchLayer(circuit, weight_shapes={})
 
-        def forward(self, x):
-            rhos = self.qlayer(x)
-            rho = torch.sum(rhos, dim=0)
-            return rho
-    model = get_rho()
+        def forward(self, x1, x0):
+            rhos1 = self.qlayer(x1)
+            rhos0 = self.qlayer(x0)
 
-    # Process the x1 data in batches
-    rho1_sum = torch.zeros((2**n_qubits, 2**n_qubits), dtype=torch.cfloat)
-    for i in range(0, len(x1), batch_size):
-        rho1_sum += model(x1[i:i + batch_size])
-    rho1 = rho1_sum / len(x1)
+            rho1 = torch.sum(rhos1, dim=0) / len(x1)
+            rho0 = torch.sum(rhos0, dim=0) / len(x0)
+            rho_diff = rho1 - rho0
+            eigvals = torch.linalg.eigvals(rho_diff)
+            return 0.5 * torch.real(torch.sum(torch.abs(eigvals)))
+        
+    model = distance()
+    return model(x1, x0).item()
 
-    # Process the x0 data in batches
-    rho0_sum = torch.zeros((2**n_qubits, 2**n_qubits), dtype=torch.cfloat)
-    for i in range(0, len(x0), batch_size):
-        rho0_sum += model(x0[i:i + batch_size])
-    rho0 = rho0_sum / len(x0)
 
-    # Calculate the trace distance
-    rho_diff = rho1 - rho0
-    eigvals = torch.linalg.eigvals(rho_diff)
-    return 0.5 * torch.real(torch.sum(torch.abs(eigvals))).item()
+#====================================================================================================
+# NQE Utility
+def get_nn_layer(n_qubits, NN_type):
+    conv_layer = torch.nn.Sequential(
+                # Layer1 : 28 * 28 -> 14 * 14
+                torch.nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1),
+                torch.nn.ReLU(),
+                torch.nn.MaxPool2d(kernel_size=2, stride=2),
+
+                # Layer2: 14 * 14 -> 7 * 7
+                torch.nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1),
+                torch.nn.ReLU(),
+                torch.nn.MaxPool2d(kernel_size=2, stride=2),
+
+                torch.nn.Flatten(),
+
+                torch.nn.Linear(7 * 7, 32, bias=True),
+                torch.nn.Linear(32, n_qubits, bias=True),)
+
+    linear_relu_stack = torch.nn.Sequential(
+                        torch.nn.Linear(n_qubits, 2 * n_qubits),
+                        torch.nn.ReLU(),
+                        torch.nn.Linear(2 * n_qubits, 4 * n_qubits),
+                        torch.nn.ReLU(),
+                        torch.nn.Linear(4 * n_qubits, 4 * n_qubits),
+                        torch.nn.ReLU(),
+                        torch.nn.Linear(4 * n_qubits, 2 * n_qubits),
+                        torch.nn.ReLU(),
+                        torch.nn.Linear(2 * n_qubits, n_qubits),
+                    )
+
+    if NN_type == "conv":
+        return conv_layer
+    elif NN_type == "linear":
+        return linear_relu_stack
+    
+def optimize_nqe(n_qubits, n_repeats, X, y, nn_type, PATH):
+    max_steps = 5000
+    convergence_interval = 300
+    dev = qml.device("default.qubit", wires=n_qubits)
+        
+    def new_data(batch_size, X, Y):
+        X1_new, X2_new, Y_new = [], [], []
+        for i in range(batch_size):
+            n, m = np.random.randint(len(X)), np.random.randint(len(X))
+            X1_new.append(X[n])
+            X2_new.append(X[m])
+            if Y[n] == Y[m]:
+                Y_new.append(1)
+            else:
+                Y_new.append(0)
+        X1_new, X2_new, Y_new = np.array(X1_new), np.array(X2_new), np.array(Y_new)
+        return torch.tensor(X1_new, dtype=torch.float32), torch.tensor(X2_new, dtype=torch.float32), torch.tensor(Y_new)
+        
+    @qml.qnode(dev, interface="torch")
+    def circuit(inputs): 
+        qml.IQPEmbedding(inputs[0:n_qubits], n_repeats=n_repeats, wires=range(n_qubits))
+        qml.adjoint(qml.IQPEmbedding)(inputs[n_qubits:2*n_qubits], n_repeats=n_repeats, wires=range(n_qubits))
+        return qml.probs(wires=range(n_qubits))
+
+    class NQE_optimize(torch.nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.qlayer1 = qml.qnn.TorchLayer(circuit, weight_shapes={})
+            self.nn_layer = get_nn_layer(n_qubits, nn_type)
+        def forward(self, x1, x2):
+            x1 = self.nn_layer(x1)
+            x2 = self.nn_layer(x2)
+            x = torch.concat([x1, x2], 1)
+            x = self.qlayer1(x)
+            return x[:,0]
+            
+    def train_models():
+        model = NQE_optimize()
+        model.train()
+        loss_fn = torch.nn.MSELoss()
+        opt = torch.optim.SGD(model.parameters(), lr=0.001)
+        loss_history = []
+        for it in range(max_steps):
+            X1_batch, X2_batch, Y_batch = new_data(64, X, y)
+            pred = model(X1_batch, X2_batch)
+            pred, Y_batch = pred.to(torch.float32), Y_batch.to(torch.float32)
+            loss = loss_fn(pred, Y_batch)
+            loss_history.append(loss.item())
+
+            opt.zero_grad()
+            loss.backward()
+            opt.step()
+
+            if it % 1000 == 0:
+                print(f"Iterations: {it} Loss: {loss.item()}")
+
+            if it > 2 * convergence_interval:
+                average1 = np.mean(loss_history[-convergence_interval:])
+                average2 = np.mean(loss_history[-2 * convergence_interval:-convergence_interval])
+                std1 = np.std(loss_history[-convergence_interval:])
+                if np.abs(average1 - average2) < std1 / np.sqrt(convergence_interval) / 2:
+                    print(f"Convergence reached at step {it}")
+                    break
+                    
+            print("NQE Optimization Complete")
+            torch.save(model.state_dict(), PATH + "model.pt")
+            return model.state_dict()
+        
+    train_models()
+#====================================================================================================
+# score_and_margins Utility
+def score_and_margins(model, X, y):
+    correct_predictions = 0
+    margin_dists = []
+
+    # Convert to tensors
+    X_tensor = torch.from_numpy(X).to(torch.float32)
+    y_tensor = torch.from_numpy(y).to(torch.long)
+
+    # Get probabilities for the batch
+    with torch.no_grad():
+        probabilities = model(X_tensor)
+            
+    # Score calculation
+    predictions = torch.argmax(probabilities, dim=1)
+    correct_predictions += (predictions == y_tensor).sum().item()
+    accuracy = correct_predictions / len(y)
+
+    # Margin calculation
+    correct_label_probs = probabilities.gather(1, y_tensor.view(-1, 1)).squeeze(1)
+    incorrect_label_probs, _ = torch.max(probabilities.masked_fill(torch.eye(probabilities.size(1))[y_tensor].bool(), float('-inf')), dim=1)
+    margin_dist = correct_label_probs - incorrect_label_probs
+
+    # Calculate Margin Mean
+    margin_mean = margin_dist.mean().item()
+    
+    # Zero out margins for incorrect predictions
+    margin_dist = torch.where(predictions == y_tensor, margin_dist, torch.zeros_like(margin_dist))
+    margin_dists.append(margin_dist)
+
+    # Calculate margin statistics
+    margin_dist = torch.cat(margin_dists, dim=0) 
+    margin_min = margin_dist.min().item()
+    margin_Q1 = torch.quantile(margin_dist, 0.25).item()
+    margin_Q2 = torch.quantile(margin_dist, 0.50).item()
+    margin_Q3 = torch.quantile(margin_dist, 0.75).item()
+    margin_max = margin_dist.max().item()
+    margin_boxplot = np.array([margin_min, margin_Q1, margin_Q2, margin_Q3, margin_max])
+
+    return accuracy, margin_dist.detach().numpy(), margin_boxplot, margin_mean
