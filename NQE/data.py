@@ -54,20 +54,25 @@ def data_load_and_process(dataset, n_features, N_train=None, N_test=None, classe
         y_test = np.concatenate(y_test_balanced)
 
     
-    # Resize images and squeeze dimensions
-    x_train = tf.image.resize(x_train[..., np.newaxis], (256, 1)).numpy()
-    x_test = tf.image.resize(x_test[..., np.newaxis], (256, 1)).numpy()
-    x_train, x_test = tf.squeeze(x_train).numpy(), tf.squeeze(x_test).numpy()
+    if n_features is None:
+        x_train = np.expand_dims(x_train, axis=1)
+        x_test = np.expand_dims(x_test, axis=1)
+        return x_train, x_test, y_train, y_test
+    else:
+        # Resize images and squeeze dimensions
+        x_train = tf.image.resize(x_train[..., np.newaxis], (256, 1)).numpy()
+        x_test = tf.image.resize(x_test[..., np.newaxis], (256, 1)).numpy()
+        x_train, x_test = tf.squeeze(x_train).numpy(), tf.squeeze(x_test).numpy()
 
-    # Apply PCA for dimensionality reduction
-    x_train = PCA(n_features).fit_transform(x_train)
-    x_test = PCA(n_features).fit_transform(x_test)
+        # Apply PCA for dimensionality reduction
+        x_train = PCA(n_features).fit_transform(x_train)
+        x_test = PCA(n_features).fit_transform(x_test)
 
-    # Scale features to the range [0, π]
-    x_train_scaled, x_test_scaled = [], []
-    for x in x_train:
-        x_train_scaled.append((x - x.min()) * (np.pi / (x.max() - x.min())))
-    for x in x_test:
-        x_test_scaled.append((x - x.min()) * (np.pi / (x.max() - x.min())))
+        # Scale features to the range [0, π]
+        x_train_scaled, x_test_scaled = [], []
+        for x in x_train:
+            x_train_scaled.append((x - x.min()) * (np.pi / (x.max() - x.min())))
+        for x in x_test:
+            x_test_scaled.append((x - x.min()) * (np.pi / (x.max() - x.min())))
 
-    return np.array(x_train_scaled), np.array(x_test_scaled), y_train, y_test
+        return np.array(x_train_scaled), np.array(x_test_scaled), y_train, y_test
