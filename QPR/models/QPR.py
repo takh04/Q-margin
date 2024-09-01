@@ -108,8 +108,8 @@ class QPRVariationalClassifier(BaseEstimator, ClassifierMixin):
         if self.convergence_interval == "overfit":
             print("Loading best model...")
             self.model.load_state_dict(self.best_model_state)
-            parameters_list = [param.detach().numpy() for param in self.model.parameters()]
-            self.weight_final = np.concatenate(parameters_list)
+        parameters_list = [param.detach().numpy() for param in self.model.parameters()]
+        self.weight_final = np.concatenate(parameters_list)
     
     def predict(self, X):
         probabilities = self.model(torch.from_numpy(X).to(torch.float32))
@@ -120,47 +120,37 @@ class QPRVariationalClassifier(BaseEstimator, ClassifierMixin):
         probabilities = self.model(torch.from_numpy(X).to(torch.float32))
         return probabilities.detach().numpy()
     
-    def score_and_margins(self, X, y, batch_size=1024):
-        num_samples = X.shape[0]
+    def score_and_margins(self, X, y):
         correct_predictions = 0
-        total_samples = 0
         margin_dists = []
 
-        for i in range(0, num_samples, batch_size):
-            # Extract the batch
-            X_batch = X[i:i + batch_size]
-            y_batch = y[i:i + batch_size]
+        # Convert to tensors
+        X_tensor = torch.from_numpy(X).to(torch.float32)
+        y_tensor = torch.from_numpy(y).to(torch.long)
 
-            # Convert to tensors
-            X_tensor = torch.from_numpy(X_batch).to(torch.float32)
-            y_tensor = torch.from_numpy(y_batch).to(torch.long)
-
-            # Get probabilities for the batch
-            with torch.no_grad():
-                probabilities = self.model(X_tensor)
+        # Get probabilities for the batch
+        with torch.no_grad():
+            probabilities = self.model(X_tensor)
             
-            # Score calculation
-            predictions = torch.argmax(probabilities, dim=1)
-            correct_predictions += (predictions == y_tensor).sum().item()
-            total_samples += y_batch.shape[0]
+        # Score calculation
+        predictions = torch.argmax(probabilities, dim=1)
+        correct_predictions += (predictions == y_tensor).sum().item()
+        accuracy = correct_predictions / len(y)
 
-            # Margin calculation
-            correct_label_probs = probabilities.gather(1, y_tensor.view(-1, 1)).squeeze(1)
-            incorrect_label_probs, _ = torch.max(probabilities.masked_fill(torch.eye(probabilities.size(1))[y_tensor].bool(), float('-inf')), dim=1)
-            margin_dist_batch = correct_label_probs - incorrect_label_probs
+        # Margin calculation
+        correct_label_probs = probabilities.gather(1, y_tensor.view(-1, 1)).squeeze(1)
+        incorrect_label_probs, _ = torch.max(probabilities.masked_fill(torch.eye(probabilities.size(1))[y_tensor].bool(), float('-inf')), dim=1)
+        margin_dist = correct_label_probs - incorrect_label_probs
 
-            # Zero out margins for incorrect predictions
-            margin_dist_batch = torch.where(predictions == y_tensor, margin_dist_batch, torch.zeros_like(margin_dist_batch))
-            margin_dists.append(margin_dist_batch)
+        margin_mean = margin_dist.mean().item()
+        # Zero out margins for incorrect predictions
+        margin_dist = torch.where(predictions == y_tensor, margin_dist, torch.zeros_like(margin_dist))
+        margin_dists.append(margin_dist)
 
         # Concatenate all margins
         margin_dist = torch.cat(margin_dists, dim=0)
 
-        # Calculate overall accuracy
-        accuracy = correct_predictions / total_samples
-
         # Calculate margin statistics
-        margin_mean = margin_dist.mean().item()
         margin_min = margin_dist.min().item()
         margin_Q1 = torch.quantile(margin_dist, 0.25).item()
         margin_Q2 = torch.quantile(margin_dist, 0.50).item()
@@ -169,7 +159,7 @@ class QPRVariationalClassifier(BaseEstimator, ClassifierMixin):
         margin_boxplot = np.array([margin_min, margin_Q1, margin_Q2, margin_Q3, margin_max])
 
         # Return both accuracy and margin-related outputs
-        return accuracy, margin_dist.detach().numpy(), margin_boxplot, margin_min, margin_Q1, margin_Q2, margin_Q3, margin_max
+        return accuracy, margin_dist.detach().numpy(), margin_boxplot, margin_Q1, margin_Q2, margin_Q3, margin_mean
     
     def get_mu_params(self, X, y):
         mu_param = self.num_params
