@@ -1,22 +1,9 @@
-QPR/results/
-QPR/results_correlation/
-QPR/results_correlation_old/
-QPR/Archive/
 QPR/.DS_Store
 QPR/models/__pycache__/
-QPR/results_overfit/
 
 NQE/__pycache__/
 NQE/models/__pycache__/
 NQE/models/data_reuploading.py
-NQE/results/DataReuploadingClassifier
-NQE/results/TQE3Classifier
 NQE/kmnist/
-
-NQE/results/
-NQE/results_old/
 .DS_Store
-
-#Temporary
-NQE/Figures/
-QPR/Figures/
+Archive/
