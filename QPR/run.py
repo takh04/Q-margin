@@ -8,7 +8,7 @@ import argparse
 num_classes = 4
 max_steps = 5000
 learning_rate = 1e-3
-convergence_interval = "overfit"
+convergence_interval = 300
 num_samples = 20
 batch_size = "Full Batch"
 
@@ -81,7 +81,7 @@ def run_all(r, n_qubits, var_ansatz_list, num_layers_list, exp_list):
                                                                                     convergence_interval=convergence_interval, num_classes=num_classes, num_samples=num_samples, r=r, exp=exp)
                     model.fit(X_train, y_train)
                     g, train_acc, test_acc, mu_marg_Q1, mu_marg_Q2, mu_marg_Q3, mu_marg_mean, mu_param, mu_param_eff10, mu_param_eff100  = model.get_results(X_train, y_train, X_test, y_test)
-                """
+                
                 # List of generalization gaps, train and test accuracies
                 g_list = np.append(g_list, g)
                 train_acc_list = np.append(train_acc_list, train_acc)
@@ -96,9 +96,9 @@ def run_all(r, n_qubits, var_ansatz_list, num_layers_list, exp_list):
                 mu_param_list = np.append(mu_param_list, mu_param)
                 mu_param_eff10_list = np.append(mu_param_eff10_list, mu_param_eff10)
                 mu_param_eff100_list = np.append(mu_param_eff100_list, mu_param_eff100)
-                """
+                
 
-    """"           
+         
     mu_lists = np.array([mu_marg_Q1_list, mu_marg_Q2_list, mu_marg_mean_list, mu_param_list, mu_param_eff10_list, mu_param_eff100_list])
     MI_g_mu_list, Tau_g_mu_list, p_value_g_mu_list, MI_test_mu_list, Tau_test_mu_list, p_value_test_mu_list = get_correlation(g_list, test_acc_list, mu_lists)
     
@@ -121,15 +121,13 @@ def run_all(r, n_qubits, var_ansatz_list, num_layers_list, exp_list):
     np.save(PATH + 'MI_test_mu_list.npy', MI_test_mu_list)
     np.save(PATH + 'Tau_test_mu_list.npy', Tau_test_mu_list)
     np.save(PATH + 'p_value_test_mu_list.npy', p_value_test_mu_list)
-    """     
+    
 
 var_ansatz_list = ["QCNN_not_shared", "QCNN_shared", "SEL"]
 
 num_layers_list = [1,3,5,7,9]
-#exp_list = [1,2,3,4,5]
-exp_list = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+exp_list = [1, 2, 3, 4, 5]
 r_list = [0.0, 0.5, 1.0]
-#num_qubits_list = [4, 8]
 num_qubits_list = [8]
 for r in r_list:
     for num_qubits in num_qubits_list:
