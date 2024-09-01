@@ -465,7 +465,6 @@ def get_nn_layer(n_qubits, NN_type):
     
 def optimize_nqe(n_qubits, n_repeats, X, y, nn_type, PATH):
     max_steps = 5000
-    convergence_interval = 300
     dev = qml.device("default.qubit", wires=n_qubits)
         
     def new_data(batch_size, X, Y):
@@ -503,7 +502,7 @@ def optimize_nqe(n_qubits, n_repeats, X, y, nn_type, PATH):
         model = NQE_optimize()
         model.train()
         loss_fn = torch.nn.MSELoss()
-        opt = torch.optim.SGD(model.parameters(), lr=0.001)
+        opt = torch.optim.SGD(model.parameters(), lr=0.005)
         loss_history = []
         for it in range(max_steps):
             X1_batch, X2_batch, Y_batch = new_data(64, X, y)
@@ -518,18 +517,10 @@ def optimize_nqe(n_qubits, n_repeats, X, y, nn_type, PATH):
 
             if it % 1000 == 0:
                 print(f"Iterations: {it} Loss: {loss.item()}")
-
-            if it > 2 * convergence_interval:
-                average1 = np.mean(loss_history[-convergence_interval:])
-                average2 = np.mean(loss_history[-2 * convergence_interval:-convergence_interval])
-                std1 = np.std(loss_history[-convergence_interval:])
-                if np.abs(average1 - average2) < std1 / np.sqrt(convergence_interval) / 2:
-                    print(f"Convergence reached at step {it}")
-                    break
                     
-            print("NQE Optimization Complete")
-            torch.save(model.state_dict(), PATH + "model.pt")
-            return model.state_dict()
+        print("NQE Optimization Complete")
+        torch.save(model.state_dict(), PATH + "model.pt")
+        return model.state_dict()
         
     train_models()
 #====================================================================================================
