@@ -5,7 +5,7 @@ import os
 import argparse
 
 #Constants
-num_classes = 4
+num_classes = 2
 max_steps = 5000
 learning_rate = 1e-3
 convergence_interval = 300
@@ -66,16 +66,16 @@ def run_all(r, n_qubits, var_ansatz_list, num_layers_list, exp_list):
         for num_layers in num_layers_list:
             for exp in exp_list:
                 ####
-                file_path = f"/home/tak/Github/Q-margin/QPR/results/4C/{r}R/{num_qubits}Q/{var_ansatz}/{num_layers}L_5000MS_Full BatchBS_0.001LR_{convergence_interval}conv/20S/{exp}E/generalization_gap.npy"
+                file_path = f"results/2C/{r}R/{num_qubits}Q/{var_ansatz}/{num_layers}L_5000MS_Full BatchBS_0.001LR_{convergence_interval}conv/20S/{exp}E/generalization_gap.npy"
                 if os.path.exists(file_path):
                     print(f"File found: {file_path}. Next.")
                     
                 ####
                 else:
-                    X_train = np.load(f'data/qubits={n_qubits}/classes={num_classes}/samples={num_samples}/exp={exp}/gs.npy')
-                    y_train = np.load(f'data/qubits={n_qubits}/classes={num_classes}/samples={num_samples}/exp={exp}/label_r={r}.npy')
-                    X_test = np.load(f'data/qubits={n_qubits}/classes={num_classes}/samples=1000/exp=1/gs.npy')
-                    y_test = np.load(f'data/qubits={n_qubits}/classes={num_classes}/samples=1000/exp=1/label_r={r}.npy')
+                    X_train = np.load(f'data/TFIM/qubits={n_qubits}/samples={num_samples}/exp={exp}/gs.npy')
+                    y_train = np.load(f'data/TFIM/qubits={n_qubits}/samples={num_samples}/exp={exp}/label_r={r}.npy')
+                    X_test = np.load(f'data/TFIM/qubits={n_qubits}/samples=1000/exp=1/gs.npy')
+                    y_test = np.load(f'data/TFIM/qubits={n_qubits}/samples=1000/exp=1/label_r={r}.npy')
 
                     model = QPRVariationalClassifier(n_qubits=n_qubits, var_ansatz=var_ansatz, n_layers=num_layers, max_steps=max_steps, batch_size=batch_size, learning_rate=learning_rate,  
                                                                                     convergence_interval=convergence_interval, num_classes=num_classes, num_samples=num_samples, r=r, exp=exp)
@@ -83,49 +83,49 @@ def run_all(r, n_qubits, var_ansatz_list, num_layers_list, exp_list):
                     g, train_acc, test_acc, mu_marg_Q1, mu_marg_Q2, mu_marg_Q3, mu_marg_mean, mu_param, mu_param_eff10, mu_param_eff100  = model.get_results(X_train, y_train, X_test, y_test)
                 
                 # List of generalization gaps, train and test accuracies
-                g_list = np.append(g_list, g)
-                train_acc_list = np.append(train_acc_list, train_acc)
-                test_acc_list = np.append(test_acc_list, test_acc)
+                #g_list = np.append(g_list, g)
+                #train_acc_list = np.append(train_acc_list, train_acc)
+                #test_acc_list = np.append(test_acc_list, test_acc)
 
                 # Lists of margin based complexity measures
-                mu_marg_Q1_list = np.append(mu_marg_Q1_list, mu_marg_Q1)
-                mu_marg_Q2_list = np.append(mu_marg_Q2_list, mu_marg_Q2)
-                mu_marg_mean_list = np.append(mu_marg_mean_list, mu_marg_mean)
+                #mu_marg_Q1_list = np.append(mu_marg_Q1_list, mu_marg_Q1)
+                #mu_marg_Q2_list = np.append(mu_marg_Q2_list, mu_marg_Q2)
+                #mu_marg_mean_list = np.append(mu_marg_mean_list, mu_marg_mean)
                         
                 # Lists of parameter based complexity measures
-                mu_param_list = np.append(mu_param_list, mu_param)
-                mu_param_eff10_list = np.append(mu_param_eff10_list, mu_param_eff10)
-                mu_param_eff100_list = np.append(mu_param_eff100_list, mu_param_eff100)
+                #mu_param_list = np.append(mu_param_list, mu_param)
+                #mu_param_eff10_list = np.append(mu_param_eff10_list, mu_param_eff10)
+                #mu_param_eff100_list = np.append(mu_param_eff100_list, mu_param_eff100)
                 
 
          
-    mu_lists = np.array([mu_marg_Q1_list, mu_marg_Q2_list, mu_marg_mean_list, mu_param_list, mu_param_eff10_list, mu_param_eff100_list])
-    MI_g_mu_list, Tau_g_mu_list, p_value_g_mu_list, MI_test_mu_list, Tau_test_mu_list, p_value_test_mu_list = get_correlation(g_list, test_acc_list, mu_lists)
+    #mu_lists = np.array([mu_marg_Q1_list, mu_marg_Q2_list, mu_marg_mean_list, mu_param_list, mu_param_eff10_list, mu_param_eff100_list])
+    #MI_g_mu_list, Tau_g_mu_list, p_value_g_mu_list, MI_test_mu_list, Tau_test_mu_list, p_value_test_mu_list = get_correlation(g_list, test_acc_list, mu_lists)
     
-    PATH = f'results_correlation/r={r}/num_qubits={n_qubits}/'
-    if not os.path.exists(PATH + 'others/'):
-        os.makedirs(PATH + 'others/')
-    np.save(PATH + 'others/g_list.npy', g_list)
-    np.save(PATH + 'others/train_acc_list.npy', train_acc_list)
-    np.save(PATH + 'others/test_acc_list.npy', test_acc_list)
-    np.save(PATH + 'others/mu_marg_Q1_list.npy', mu_marg_Q1_list)
-    np.save(PATH + 'others/mu_marg_Q2_list.npy', mu_marg_Q2_list)
-    np.save(PATH + 'others/mu_marg_mean_list.npy', mu_marg_mean_list)
-    np.save(PATH + 'others/mu_param_list.npy', mu_param_list)
-    np.save(PATH + 'others/mu_param_eff10_list.npy', mu_param_eff10_list)
-    np.save(PATH + 'others/mu_param_eff100_list.npy', mu_param_eff100_list)
+    #PATH = f'results_correlation/r={r}/num_qubits={n_qubits}/'
+    #if not os.path.exists(PATH + 'others/'):
+    #    os.makedirs(PATH + 'others/')
+    #np.save(PATH + 'others/g_list.npy', g_list)
+    #np.save(PATH + 'others/train_acc_list.npy', train_acc_list)
+    #np.save(PATH + 'others/test_acc_list.npy', test_acc_list)
+    #np.save(PATH + 'others/mu_marg_Q1_list.npy', mu_marg_Q1_list)
+    #np.save(PATH + 'others/mu_marg_Q2_list.npy', mu_marg_Q2_list)
+    #np.save(PATH + 'others/mu_marg_mean_list.npy', mu_marg_mean_list)
+    #np.save(PATH + 'others/mu_param_list.npy', mu_param_list)
+    #np.save(PATH + 'others/mu_param_eff10_list.npy', mu_param_eff10_list)
+    #np.save(PATH + 'others/mu_param_eff100_list.npy', mu_param_eff100_list)
 
-    np.save(PATH + 'MI_g_mu_list.npy', MI_g_mu_list)
-    np.save(PATH + 'Tau_g_mu_list.npy', Tau_g_mu_list)
-    np.save(PATH + 'p_value_g_mu_list.npy', p_value_g_mu_list)
-    np.save(PATH + 'MI_test_mu_list.npy', MI_test_mu_list)
-    np.save(PATH + 'Tau_test_mu_list.npy', Tau_test_mu_list)
-    np.save(PATH + 'p_value_test_mu_list.npy', p_value_test_mu_list)
+    #np.save(PATH + 'MI_g_mu_list.npy', MI_g_mu_list)
+    #np.save(PATH + 'Tau_g_mu_list.npy', Tau_g_mu_list)
+    #np.save(PATH + 'p_value_g_mu_list.npy', p_value_g_mu_list)
+    #np.save(PATH + 'MI_test_mu_list.npy', MI_test_mu_list)
+    #np.save(PATH + 'Tau_test_mu_list.npy', Tau_test_mu_list)
+    #np.save(PATH + 'p_value_test_mu_list.npy', p_value_test_mu_list)
     
 
 var_ansatz_list = ["QCNN_not_shared", "QCNN_shared", "SEL"]
 
-num_layers_list = [1,3,5,7,9]
+num_layers_list = [1,5,9]
 exp_list = [1, 2, 3, 4, 5]
 r_list = [0.0, 0.5, 1.0]
 num_qubits_list = [8]
