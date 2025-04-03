@@ -55,7 +55,7 @@ def gen_data(num_qubits, num_classes, num_samples, exp):
     gs_list = []
     y_list = []
 
-    directory = f'qubits={num_qubits}/classes={num_classes}/samples={num_samples}/exp={exp}'
+    directory = f'Cluster/qubits={num_qubits}/classes={num_classes}/samples={num_samples}/exp={exp}'
     if not os.path.exists(directory):
         os.makedirs(directory)
 
@@ -81,11 +81,13 @@ def gen_data(num_qubits, num_classes, num_samples, exp):
     y_list = np.array(y_list)
     np.save(os.path.join(directory, 'label_r=0.0.npy'), y_list)
     
-    for noise_level in [0.0, 0.5, 1.0]:
-        noisy_labels = y_list.copy()
-        random_indices = np.random.choice(num_samples, int(noise_level * num_samples), replace=False)
-        noisy_labels[random_indices] = np.random.randint(0, num_classes, size=len(random_indices))
-        np.save(os.path.join(directory, f'label_r={noise_level:.1f}.npy'), noisy_labels)
+    for noise_level in [0.0, 0.25, 0.5, 0.75, 1.0]:
+        label_file = os.path.join(directory, f'label_r={noise_level:.2f}.npy')
+        if not os.path.exists(label_file):
+            noisy_labels = y_list.copy()
+            random_indices = np.random.choice(num_samples, int(noise_level * num_samples), replace=False)
+            noisy_labels[random_indices] = np.random.randint(0, num_classes, size=len(random_indices))
+            np.save(label_file, noisy_labels)
 
     
 def gen_data_all(num_qubits_list, num_classes_list, num_samples_list, exp_list):
@@ -93,7 +95,7 @@ def gen_data_all(num_qubits_list, num_classes_list, num_samples_list, exp_list):
         for num_classes in num_classes_list:
             for num_samples in num_samples_list:
                 for exp in exp_list:
-                    path = f'qubits={num_qubits}/classes={num_classes}/samples={num_samples}/exp={exp}/'
+                    path = f'Cluster/qubits={num_qubits}/classes={num_classes}/samples={num_samples}/exp={exp}/'
                     os.makedirs(path, exist_ok=True)
                     gen_data(num_qubits, num_classes, num_samples, exp)
         
