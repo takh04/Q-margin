@@ -82,7 +82,7 @@ def gen_data(num_qubits, num_classes, num_samples, exp):
     np.save(os.path.join(directory, 'label_r=0.0.npy'), y_list)
     
     for noise_level in [0.0, 0.25, 0.5, 0.75, 1.0]:
-        label_file = os.path.join(directory, f'label_r={noise_level:.2f}.npy')
+        label_file = os.path.join(directory, f'label_r={noise_level}.npy')
         if not os.path.exists(label_file):
             noisy_labels = y_list.copy()
             random_indices = np.random.choice(num_samples, int(noise_level * num_samples), replace=False)
