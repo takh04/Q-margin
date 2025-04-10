@@ -57,7 +57,7 @@ def calculate_correlations(r, n_qubits, var_ansatz_list, num_layers_list, exp_li
     for var_ansatz in var_ansatz_list:
         for num_layers in num_layers_list:
             for exp in exp_list:
-                base_path = f"results/2C/{r}R/{n_qubits}Q/{var_ansatz}/{num_layers}L_5000MS_Full BatchBS_0.001LR_{convergence_interval}conv/20S/{exp}E"
+                base_path = f"results_{dataset}/2C/{r}R/{n_qubits}Q/{var_ansatz}/{num_layers}L_5000MS_Full BatchBS_0.001LR_{convergence_interval}conv/20S/{exp}E"
                 
                 # Load all metrics
                 g = np.load(f"{base_path}/generalization_gap.npy")
@@ -86,7 +86,7 @@ def calculate_correlations(r, n_qubits, var_ansatz_list, num_layers_list, exp_li
     MI_g_mu_list, Tau_g_mu_list, p_value_g_mu_list, MI_test_mu_list, Tau_test_mu_list, p_value_test_mu_list = get_correlation(g_list, test_acc_list, mu_lists)
     
     # Save results
-    PATH = f'results_correlation/r={r}/num_qubits={n_qubits}/'
+    PATH = f'results_correlation/{dataset}/r={r}/num_qubits={n_qubits}/'
     if not os.path.exists(PATH + 'others/'):
         os.makedirs(PATH + 'others/')
     
