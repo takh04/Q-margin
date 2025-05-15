@@ -1,0 +1,10 @@
+Train Accuracy: 0.9
+Test Accuracy: 0.877
+Generalization Gap: 0.02300000000000002
+Margin Q1: 0.9875360727310181
+Margin Q2: 0.988767147064209
+Margin Q3: 0.9992260932922363
+Margin Mean: 0.7946785688400269
+Mu Params: 240
+Mu Params eff10: 162
+Mu Params eff100: 229

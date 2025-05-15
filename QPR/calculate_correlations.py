@@ -4,7 +4,11 @@ import os
 
 # Constants
 convergence_interval = 300
-dataset = "TFIM"
+dataset = "XXZ"
+if dataset == "Cluster":
+    num_classes = 4
+else:
+    num_classes = 2
 
 def mutual_information_hist(a, b):
     num_bins = int(np.round(np.sqrt(len(a))))
@@ -57,7 +61,7 @@ def calculate_correlations(r, n_qubits, var_ansatz_list, num_layers_list, exp_li
     for var_ansatz in var_ansatz_list:
         for num_layers in num_layers_list:
             for exp in exp_list:
-                base_path = f"results_{dataset}/2C/{r}R/{n_qubits}Q/{var_ansatz}/{num_layers}L_5000MS_Full BatchBS_0.001LR_{convergence_interval}conv/20S/{exp}E"
+                base_path = f"results_{dataset}/{num_classes}C/{r}R/{n_qubits}Q/{var_ansatz}/{num_layers}L_5000MS_Full BatchBS_0.001LR_{convergence_interval}conv/20S/{exp}E"
                 
                 # Load all metrics
                 g = np.load(f"{base_path}/generalization_gap.npy")
@@ -113,10 +117,10 @@ def calculate_correlations(r, n_qubits, var_ansatz_list, num_layers_list, exp_li
 
 if __name__ == "__main__":
     var_ansatz_list = ["QCNN_not_shared", "QCNN_shared", "SEL"]
-    num_layers_list = [1,5,9]
+    num_layers_list = [1,3,5,7,9]
     exp_list = [1, 2, 3, 4, 5]
-    r_list = [0.0, 0.5, 1.0]
-    num_qubits_list = [8]
+    r_list = [0.0, 0.25, 0.5, 0.75, 1.0]
+    num_qubits_list = [10]
 
     for r in r_list:
         for num_qubits in num_qubits_list:
