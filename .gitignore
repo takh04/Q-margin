@@ -2,9 +2,10 @@ QPR/.DS_Store
 QPR/models/__pycache__/
 QPR/data/Cluster/
 QPR/data/TFIM/
-QPR/data/Cluster/
+QPR/data/XXZ/
 QPR/results_old/
 QPR/results_300conv/
+QPR/Figures/correlations/
 
 NQE/__pycache__/
 NQE/models/__pycache__/
