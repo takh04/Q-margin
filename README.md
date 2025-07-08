@@ -42,28 +42,13 @@ Both pipelines measure *margin distributions*, *generalization gaps*, and severa
 If you find this repository useful in your research, please cite our work:
 
 ```
-@inproceedings{qmargin2025,
-  author    = {YOUR NAMES HERE},
-  title     = {Understanding Generalization in Quantum Machine Learning with Margins},
-  booktitle = {Proceedings of the 42nd International Conference on Machine Learning (ICML)},
-  year      = {2025}
+@article{hur2024understanding,
+  title={Understanding Generalization in Quantum Machine Learning with Margins},
+  author={Hur, Tak and Park, Daniel K},
+  journal={arXiv preprint arXiv:2411.06919},
+  year={2024}
 }
 ```
-
-## Contributing
-
-We welcome external contributions, be it feature requests, bug fixes, or new analyses.
-
-1. Fork the repo and create your branch: `git checkout -b feature/awesome`.
-2. Commit your changes: `git commit -m 'Add awesome feature'`.
-3. Push to the branch: `git push origin feature/awesome`.
-4. Open a Pull Request.
-
-Before submitting, please ensure that:
-
-- All tests (if any) pass and new code is covered.
-- Code is formatted with `black` (88-column style).
-- Commits are squashed into meaningful units.
 
 ## License
 
