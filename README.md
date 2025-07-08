@@ -11,9 +11,9 @@ The project investigates how *margins*—a classical concept from statistical le
 The repository contains two independent experimental pipelines:
 
 1. **QPR** – *Quantum Phase Recognition* on 1-D spin chains (Cluster, TFIM, XXZ) using variational quantum circuits and Quantum Convolutional Neural Networks (QCNNs).
-2. **NQE** – *Neural-Quantum Embedding* on image datasets (MNIST, Fashion-MNIST, KMNIST) that combines classical pre-processing with various quantum classifiers (IQP, TQE, CNN-based NQE, PCA-based NQE).
+2. **NQE** – *Neural-Quantum Embedding* on image datasets (MNIST, Fashion-MNIST, KMNIST) that combines classical pre-processing with various quantum classifiers (IQP, TQE, NQE).
 
-Both pipelines measure *margin distributions*, *generalization gaps*, and several *effective capacity* metrics providing large-scale empirical evidence for our theoretical results.
+Both pipelines measure *margin distributions*, *generalization gaps*, and several *effective parameters* metrics providing large-scale empirical evidence for our theoretical results.
 
 ## Repository Structure
 
