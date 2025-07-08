@@ -1,20 +1,74 @@
 # Q-margin
 
-Official repository for ["Understanding Generalizations in Quantum Machine Learning with Margins"](https://arxiv.org/abs/2411.06919).
+**Understanding Generalization in Quantum Machine Learning with Margins**  
+*Accepted at ICML 2025*
 
-## Overview
+---
 
-This research project explores the role of margins in understanding the generalization capabilities of quantum machine learning. This repository contains implementations and experiments to study how margin-based approaches can enhance the performance and interpretability of quantum machine learning algorithms.
+Q-margin is the official research code accompanying our ICML 2025 paper.  
+The project investigates how *margins*—a classical concept from statistical learning theory—translate to the quantum realm and how they correlate with generalization in quantum machine-learning (QML) models.
+
+The repository contains two independent experimental pipelines:
+
+1. **QPR** – *Quantum Phase Recognition* on 1-D spin chains (Cluster, TFIM, XXZ) using variational quantum circuits and Quantum Convolutional Neural Networks (QCNNs).
+2. **NQE** – *Neural-Quantum Embedding* on image datasets (MNIST, Fashion-MNIST, KMNIST) that combines classical pre-processing with various quantum classifiers (IQP, TQE, CNN-based NQE, PCA-based NQE).
+
+Both pipelines measure *margin distributions*, *generalization gaps*, and several *effective capacity* metrics providing large-scale empirical evidence for our theoretical results.
+
+## Repository Structure
+
+```
+├── QPR/                   # Quantum Phase Recognition experiments
+│   ├── data/              # Pre-generated spin-chain ground states & generators
+│   ├── models/            # QCNN architectures and helpers
+│   ├── results_*/         # Saved results (each subfolder = sweep)
+│   └── run.py             # Entry-point for QPR sweeps
+│
+├── NQE/                   # Neural-Quantum Embedding experiments
+│   ├── models/            # NQE, IQP, TQE models + utilities
+│   ├── results/           # Saved results and trained checkpoints
+│   ├── Figures/           # Plots created by notebooks / scripts
+│   ├── data.py            # Image loading & PCA helpers
+│   └── run.py             # Entry-point for NQE sweeps
+│
+├── LICENSE                # Apache-2.0
+├── README.md              # ← you are here
+└── .gitignore
+```
+
 
 ## Citation
 
-If you use this code in your research, please cite:
+If you find this repository useful in your research, please cite our work:
 
 ```
-@article{hur2024understanding,
-  title={Understanding Generalization in Quantum Machine Learning with Margins},
-  author={Hur, Tak and Park, Daniel K},
-  journal={arXiv preprint arXiv:2411.06919},
-  year={2024}
+@inproceedings{qmargin2025,
+  author    = {YOUR NAMES HERE},
+  title     = {Understanding Generalization in Quantum Machine Learning with Margins},
+  booktitle = {Proceedings of the 42nd International Conference on Machine Learning (ICML)},
+  year      = {2025}
 }
 ```
+
+## Contributing
+
+We welcome external contributions, be it feature requests, bug fixes, or new analyses.
+
+1. Fork the repo and create your branch: `git checkout -b feature/awesome`.
+2. Commit your changes: `git commit -m 'Add awesome feature'`.
+3. Push to the branch: `git push origin feature/awesome`.
+4. Open a Pull Request.
+
+Before submitting, please ensure that:
+
+- All tests (if any) pass and new code is covered.
+- Code is formatted with `black` (88-column style).
+- Commits are squashed into meaningful units.
+
+## License
+
+Q-margin is released under the **Apache 2.0** license (see `LICENSE`).
+
+## Contact
+
+For questions or collaborations, please open an issue or email **first.last@quantum-ml-lab.org**.
