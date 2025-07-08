@@ -71,4 +71,4 @@ Q-margin is released under the **Apache 2.0** license (see `LICENSE`).
 
 ## Contact
 
-For questions or collaborations, please open an issue or email **first.last@quantum-ml-lab.org**.
+For questions or collaborations, please open an issue or email **takh0404@yonsei.ac.kr**.
