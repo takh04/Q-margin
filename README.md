@@ -1,6 +1,6 @@
 # Q-margin
 
-**Understanding Generalization in Quantum Machine Learning with Margins**  
+[**Understanding Generalization in Quantum Machine Learning with Margins**](https://arxiv.org/abs/2411.06919)  
 *Accepted at ICML 2025*
 
 ---
